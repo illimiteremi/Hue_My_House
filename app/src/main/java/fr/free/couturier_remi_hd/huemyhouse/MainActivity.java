@@ -1,5 +1,6 @@
 package fr.free.couturier_remi_hd.huemyhouse;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -31,10 +32,11 @@ import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueManager;
 
 public class MainActivity extends ActionBarActivity {
 
-    PHHueSDK              phHueSDK;
     static  String        TAG               = "[HueMyHouse][Listener]";
 
-    Button buttonAlarmMode;
+    PHHueSDK              phHueSDK;
+
+    Button                buttonAlarmMode;
     Button                buttonEffectMode;
 
     public PHSDKListener listener = new PHSDKListener() {
@@ -51,13 +53,13 @@ public class MainActivity extends ActionBarActivity {
             Log.d(TAG, "Le pont Hue est connecté");
             phHueSDK.setSelectedBridge(phBridge);
             phHueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
-
             Intent intent = new Intent(MainActivity.this, HueBridgeAuthentification.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             intent.putExtra("onAuthentification", false);
             intent.putExtra("userName", userName);
             startActivity(intent);
+
         }
 
         @Override
@@ -81,10 +83,9 @@ public class MainActivity extends ActionBarActivity {
                 String id         = myAccesPoint.getBridgeId();
                 String userName   = "HueMyHouse";
                 String macAddress = myAccesPoint.getMacAddress();
-                String wifi       = myManager.getWifiName();
                 String token      = "";
                 // Enregistrement d'un pont hue
-                HueBridge hueBridge = new HueBridge(id, ip, userName, macAddress, wifi, token);
+                HueBridge hueBridge = new HueBridge(id, ip, userName, macAddress, token);
                 myManager.addHueBridge(hueBridge);
                 Log.d(TAG, "Pont Hue trouvé => " + id + " / " + ip);
                 connexionHueBridge();
@@ -149,7 +150,6 @@ public class MainActivity extends ActionBarActivity {
     public void connexionHueBridge() {
         // Connection au pont
         HueManager hueManager = new HueManager(getApplicationContext());
-
         try {
             ArrayList<HueBridge> allBridge = hueManager.getAllHueBridge();
             if (allBridge.size() == 0) {

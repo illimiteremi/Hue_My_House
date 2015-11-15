@@ -33,7 +33,7 @@ public class HueBridgeAuthentification extends Activity {
 
         Intent intent       = this.getIntent();
         onAuthentification  = intent.getExtras().getBoolean("onAuthentification");
-        hueBridge           = new HueBridge("", intent.getExtras().getString("hueIp"), "", "", "", "");
+        hueBridge           = new HueBridge("", intent.getExtras().getString("hueIp"), "", "", "");
 
         if(onAuthentification == true) {
             setContentView(R.layout.hue_bridge_authentification);
@@ -49,16 +49,10 @@ public class HueBridgeAuthentification extends Activity {
         imageBridge = (ImageView) findViewById(R.id.imageBridge);
         onAuthentification = intent.getExtras().getBoolean("onAuthentification");
 
+        // Fin de demande d'authentification
         if(onAuthentification == false) {
             imageBridge.setImageResource(R.drawable.bridge_filled);
-            String hueUserName = intent.getExtras().getString("userName");
-
-            Toast.makeText(getApplicationContext(), "Pont Hue (" + hueBridge.hueIp + ") associé", Toast.LENGTH_SHORT).show();
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            String hueUserName    = intent.getExtras().getString("userName");
             HueManager hueManager = new HueManager(getApplicationContext());
             hueBridge             = hueManager.getHueBridgeByNetwork(hueBridge);
             // Mise à jour de l'identifiant retourné par le pont

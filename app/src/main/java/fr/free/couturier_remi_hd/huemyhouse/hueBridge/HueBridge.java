@@ -22,10 +22,9 @@ public class HueBridge {
     static  String        aapId             = "hueapp";
 
 
-    public HueBridge(String hueId, String hueIp, String hueUserName, String hueMacAdress, String hueWifi, String meetHueToken) {
+    public HueBridge(String hueId, String hueIp, String hueUserName, String hueMacAdress, String meetHueToken) {
         this.hueId        = hueId;
         this.hueIp        = hueIp;
-        this.hueWifi      = hueWifi;
         this.hueMacAdress = hueMacAdress;
         this.hueUserName  = hueUserName;
         this.meetHueToken = meetHueToken;

@@ -48,6 +48,7 @@ public class HueManager {
 
         try {
             ContentValues newBridge = new ContentValues();
+            hueBridge.hueWifi = getWifiName();                              // Récuperation du SIDD du wifi
             newBridge.put(SharedInformation.hueBridge.HUE_ID, 0);
             newBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
             newBridge.put(SharedInformation.hueBridge.HUE_IP, hueBridge.hueIp);
@@ -87,8 +88,7 @@ public class HueManager {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    HueBridge hueBridge =  new HueBridge("", "", "", "", "", "");
-
+                    HueBridge hueBridge =  new HueBridge("", "", "", "", "");           // initialisation d'un pont vierge
                     hueBridge.hueId = cursor.getString(cursor.getColumnIndex(SharedInformation.hueBridge.HUE_BRIDGE_ID));
                     hueBridge.hueIp = cursor.getString(cursor.getColumnIndex(SharedInformation.hueBridge.HUE_IP));
                     hueBridge.hueMacAdress = cursor.getString(cursor.getColumnIndex(SharedInformation.hueBridge.HUE_MAC_ADRESS));
@@ -209,7 +209,7 @@ public class HueManager {
      * Retourne le SSID Wifi
      * @return
      */
-    public String getWifiName() {
+    private String getWifiName() {
         WifiManager manager = (WifiManager) hueContext.getSystemService(hueContext.WIFI_SERVICE);
         if (manager.isWifiEnabled()) {
             WifiInfo wifiInfo = manager.getConnectionInfo();
@@ -223,7 +223,4 @@ public class HueManager {
         return null;
     }
 
-
-
-
-    }
+}
