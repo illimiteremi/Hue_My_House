@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Hue My House</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="title_activity_meethue_connexion">Association à votre meethuee</string>
+    <string name="title_activity_hue_bridge_authentification">Hue Bridge Authentification</string>
+
+</resources>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="fr.free.couturier_remi_hd.huemyhouse" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <data android:mimeType="vnd.android.cursor.item/vnd.android.content.provider.huebridge" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".hueBridge.MeethueConnexion"
+            android:label="@string/title_activity_meethue_connexion" >
+        </activity>
+        <activity
+            android:name=".hueBridge.HueBridgeAuthentification"
+            android:label="@string/title_activity_hue_bridge_authentification"
+            android:launchMode="singleTop">
+        </activity>
+
+        <provider android:name="fr.free.couturier_remi_hd.huemyhouse.hueCommonData.AndroidProvider"
+            android:authorities="fr.free.couturier_remi_hd.huemyhouse.provider"/>
+
+    </application>
+
+</manifest>
