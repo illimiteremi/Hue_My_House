@@ -1,5 +1,9 @@
 package fr.free.couturier_remi_hd.huemyhouse.hueBridge;
 
+import android.content.Context;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 /**

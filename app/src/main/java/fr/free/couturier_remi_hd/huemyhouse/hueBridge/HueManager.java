@@ -4,7 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -179,6 +182,7 @@ public class HueManager {
                 hueBridge.meetHueToken = cursor.getString(cursor.getColumnIndex(SharedInformation.hueBridge.HUE_TOKEN));
             } while (cursor.moveToNext());
         }
+        Log.d(TAG, "Pont Hue " + hueBridge.hueId + " (" + hueBridge.hueIp + ") sur le reseau : " + hueBridge.hueWifi);
         return hueBridge;
     }
 
@@ -201,7 +205,23 @@ public class HueManager {
         }
     }
 
-
+    /**
+     * Retourne le SSID Wifi
+     * @return
+     */
+    public String getWifiName() {
+        WifiManager manager = (WifiManager) hueContext.getSystemService(hueContext.WIFI_SERVICE);
+        if (manager.isWifiEnabled()) {
+            WifiInfo wifiInfo = manager.getConnectionInfo();
+            if (wifiInfo != null) {
+                NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState());
+                if (state == NetworkInfo.DetailedState.CONNECTED || state == NetworkInfo.DetailedState.OBTAINING_IPADDR) {
+                    return wifiInfo.getSSID();
+                }
+            }
+        }
+        return null;
+    }
 
 
 

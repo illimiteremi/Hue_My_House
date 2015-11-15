@@ -81,7 +81,7 @@ public class MainActivity extends ActionBarActivity {
                 String id         = myAccesPoint.getBridgeId();
                 String userName   = "HueMyHouse";
                 String macAddress = myAccesPoint.getMacAddress();
-                String wifi       = "";
+                String wifi       = myManager.getWifiName();
                 String token      = "";
                 // Enregistrement d'un pont hue
                 HueBridge hueBridge = new HueBridge(id, ip, userName, macAddress, wifi, token);
