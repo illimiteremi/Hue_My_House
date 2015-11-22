@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.philips.lighting.model.PHLightState;
 
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridge;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridgeAuthentification;
+import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueLight;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueManager;
 
 
@@ -59,6 +61,9 @@ public class MainActivity extends ActionBarActivity {
             intent.putExtra("onAuthentification", false);
             intent.putExtra("userName", userName);
             startActivity(intent);
+
+            HueLight hueLight = new HueLight(getApplicationContext());
+            List lights = hueLight.getAllLights();
 
         }
 
@@ -182,28 +187,32 @@ public class MainActivity extends ActionBarActivity {
         new Thread() {
             public void run() {
                 PHBridge bridge = phHueSDK.getSelectedBridge();
-                PHLightState lightState = new PHLightState();
+                if (bridge == null) {
+                    Toast.makeText(getApplicationContext(), "Pas de pont Philips Hue...", Toast.LENGTH_SHORT).show();
+                } else {
+                    PHLightState lightState = new PHLightState();
 
-                lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
-                bridge.setLightStateForDefaultGroup(lightState);
+                    lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
+                    bridge.setLightStateForDefaultGroup(lightState);
 
-                // Start blinking for up to xx seconds
-                float xy[] = PHUtilities.calculateXYFromRGB(255, 0, 0,"");             // RED
-                lightState.setX(xy[0]);
-                lightState.setY(xy[1]);
-                lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_LSELECT);
-                bridge.setLightStateForDefaultGroup(lightState);
+                    // Start blinking for up to xx seconds
+                    float xy[] = PHUtilities.calculateXYFromRGB(255, 0, 0,"");             // RED
+                    lightState.setX(xy[0]);
+                    lightState.setY(xy[1]);
+                    lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_LSELECT);
+                    bridge.setLightStateForDefaultGroup(lightState);
 
-                try {
-                    Thread.sleep(alarmTime);
-                } catch (InterruptedException e) {}
+                    try {
+                        Thread.sleep(alarmTime);
+                    } catch (InterruptedException e) {}
 
-                // Stop blinking
-                xy = PHUtilities.calculateXYFromRGB(255, 255, 255, "LCT001");       // WHITE
-                lightState.setX(xy[0]);
-                lightState.setY(xy[1]);
-                lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_NONE);
-                bridge.setLightStateForDefaultGroup(lightState);
+                    // Stop blinking
+                    xy = PHUtilities.calculateXYFromRGB(255, 255, 255, "LCT001");       // WHITE
+                    lightState.setX(xy[0]);
+                    lightState.setY(xy[1]);
+                    lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_NONE);
+                    bridge.setLightStateForDefaultGroup(lightState);
+                }
             }
         }.start();
     }
@@ -216,10 +225,17 @@ public class MainActivity extends ActionBarActivity {
         new Thread() {
             public void run() {
                 PHBridge bridge = phHueSDK.getSelectedBridge();
-                PHLightState lightState = new PHLightState();
-                // Start effect mode
-                lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_COLORLOOP);
-                bridge.setLightStateForDefaultGroup(lightState);
+                if (bridge == null) {
+                    Toast.makeText(getApplicationContext(), "Pas de pont Philips Hue...", Toast.LENGTH_SHORT).show();
+                } else {
+                    PHLightState lightState = new PHLightState();
+                    lightState.setOn(true);
+                    // Start effect mode
+                    lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_COLORLOOP);
+                    bridge.setLightStateForDefaultGroup(lightState);
+
+                }
+
             }
         }.start();
     }

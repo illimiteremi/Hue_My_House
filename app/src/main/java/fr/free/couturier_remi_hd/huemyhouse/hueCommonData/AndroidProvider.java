@@ -4,11 +4,13 @@ import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 /**
@@ -17,18 +19,28 @@ import android.util.Log;
 public class AndroidProvider extends ContentProvider {
 
     // URI du content provider
-    public static final Uri    CONTENT_URI                 = Uri.parse("content://fr.free.couturier_remi_hd.huemyhouse.provider");
+    public static final String AUTHORITY = "fr.free.couturier_remi_hd.huemyhouse.provider";
+    public static final Uri    CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri    CONTENT_URI_BRIDGE            = Uri.parse("content://fr.free.couturier_remi_hd.huemyhouse.provider/bridge");
+    public static final Uri    CONTENT_URI_LIGHT             = Uri.parse("content://fr.free.couturier_remi_hd.huemyhouse.provider/light");
 
-    public static final String CONTENT_PROVIDER_DB_NAME    = "HueMyHouse.db";                // Nom de notre base de données
-    public static final int    CONTENT_PROVIDER_DB_VERSION = 1;                              // Version de notre base de données
-    public static final String CONTENT_PROVIDER_TABLE_NAME = "hueBridge";                    // Nom de la table de notre base
+    public static final String CONTENT_PROVIDER_DB_NAME      = "HueMyHouse.db";                // Nom de la base de données
+    public static final int    CONTENT_PROVIDER_DB_VERSION   = 1;                              // Version de la base de données
+    public static final String CONTENT_PROVIDER_TABLE_BRIDGE = "hueBridge";                    // Nom de la table des ponts philips
+    public static final String CONTENT_PROVIDER_TABLE_LIGHT  = "hueLight";                     // Nom de la table des ampoules
 
-    public static final String TAG                         = "[HueMyHouse]";
+    public static final int    URI_BRIDGE                    = 1;
+    public static final int    URI_LIGHT                     = 2;
 
-    private DatabaseHelper     dbHelper;
+    public static final String      TAG                         = "[HueMyHouse][Provider]";
+    private DatabaseHelper          dbHelper;
+    private static final UriMatcher uriMatcher;
 
-    // Mime du content provider
-    public static final String CONTENT_PROVIDER_MIME = "vnd.android.cursor.item/vnd.android.content.provider.huebridge";
+    static {
+        uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        uriMatcher.addURI(AUTHORITY, "bridge", 1);
+        uriMatcher.addURI(AUTHORITY, "light",  2);
+    }
 
     @Override
     public boolean onCreate() {
@@ -38,29 +50,54 @@ public class AndroidProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-
-            long id = getId(uri);
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            if (id < 0) {
-                return db.query(CONTENT_PROVIDER_TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
-            } else {
-                return db.query(CONTENT_PROVIDER_TABLE_NAME, projection, SharedInformation.hueBridge.HUE_ID + "=" + id, null, null, null, null);
-            }
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        long id = getId(uri);
+        Cursor cursor = null;
+        switch (uriMatcher.match(uri)){
+            case URI_BRIDGE:
+                if (id < 0) {
+                    cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, selection, selectionArgs, null, null, sortOrder);
+                } else {
+                    cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, SharedInformation.hueBridge.HUE_ID + "=" + id, null, null, null, null);
+                }
+                break;
+            case URI_LIGHT:
+                if (id < 0) {
+                    cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, selection, selectionArgs, null, null, sortOrder);
+                } else {
+                    cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, SharedInformation.hueLight.LIGHT_ID + "=" + id, null, null, null, null);
+                }
+                break;
+        }
+        return cursor;
     }
 
     @Override
     public String getType(Uri uri) {
-        return CONTENT_PROVIDER_MIME;
+        return null;
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        long id;
+        switch (uriMatcher.match(uri)){
+            case URI_BRIDGE:
+                id = db.insertOrThrow(CONTENT_PROVIDER_TABLE_BRIDGE, null, values);
+                Log.d(TAG, "Ajout d'un pont en base");
+                break;
+            case URI_LIGHT:
+                id = db.insertOrThrow(CONTENT_PROVIDER_TABLE_LIGHT, null, values);
+                Log.d(TAG, "Ajout d'une ampoule en base.");
+                break;
+            default :
+                id = -1;
+        }
+
         try {
-            long id = db.insertOrThrow(CONTENT_PROVIDER_TABLE_NAME, null, values);
             if (id == -1) {
                 throw new RuntimeException(String.format(
-                        "%s : Failed to insert [%s] for unknown reasons.","TutosAndroidProvider", values, uri));
+                        "%s : Failed to insert [%s] for unknown reasons.",TAG, values, uri));
             } else {
                 return ContentUris.withAppendedId(uri, id);
             }
@@ -78,9 +115,9 @@ public class AndroidProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         try {
             if (id < 0)
-                return db.delete(CONTENT_PROVIDER_TABLE_NAME, selection, selectionArgs);
+                return db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
             else
-                return db.delete(CONTENT_PROVIDER_TABLE_NAME, SharedInformation.hueBridge.HUE_ID + "=" + id, selectionArgs);
+                return db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, SharedInformation.hueBridge.HUE_ID + "=" + id, selectionArgs);
         } finally {
             db.close();
         }
@@ -93,9 +130,9 @@ public class AndroidProvider extends ContentProvider {
 
         try {
             if (id < 0)
-                return db.update(CONTENT_PROVIDER_TABLE_NAME,values, selection, selectionArgs);
+                return db.update(CONTENT_PROVIDER_TABLE_BRIDGE,values, selection, selectionArgs);
             else
-                return db.update(CONTENT_PROVIDER_TABLE_NAME,
+                return db.update(CONTENT_PROVIDER_TABLE_BRIDGE,
                         values, SharedInformation.hueBridge.HUE_ID + "=" + id, null);
         } finally {
             db.close();
@@ -130,7 +167,7 @@ public class AndroidProvider extends ContentProvider {
         // Création des tables
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL("CREATE TABLE " + CONTENT_PROVIDER_TABLE_NAME + " ("
+            db.execSQL("CREATE TABLE " + CONTENT_PROVIDER_TABLE_BRIDGE + " ("
                     + SharedInformation.hueBridge.HUE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + SharedInformation.hueBridge.HUE_BRIDGE_ID + " VARCHAR(255) UNIQUE,"
                     + SharedInformation.hueBridge.HUE_IP + " VARCHAR(255),"
@@ -138,12 +175,22 @@ public class AndroidProvider extends ContentProvider {
                     + SharedInformation.hueBridge.HUE_WIFI_NAME + " VARCHAR(255),"
                     + SharedInformation.hueBridge.HUE_USERNAME + " VARCHAR(255),"
                     + SharedInformation.hueBridge.HUE_TOKEN + ");");
+
+            db.execSQL("CREATE TABLE " + CONTENT_PROVIDER_TABLE_LIGHT + " ("
+                    + SharedInformation.hueLight.LIGHT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + SharedInformation.hueLight.HUD_ID + " INTEGER,"
+                    + SharedInformation.hueLight.HUE_LIGHT_ID + " VARCHAR(255) UNIQUE,"
+                    + SharedInformation.hueLight.LIGHT_MODEL + " VARCHAR(255),"
+                    + SharedInformation.hueLight.LIGHT_TYPE + " VARCHAR(255),"
+                    + SharedInformation.hueLight.LIGHT_NAME + " VARCHAR(255),"
+                    + "FOREIGN KEY(" + SharedInformation.hueLight.HUD_ID  + ")REFERENCES " + CONTENT_PROVIDER_TABLE_BRIDGE + "(" + SharedInformation.hueBridge.HUE_ID + "));");
         }
 
-        // Cette méthode sert à gérer la montée
+        // Cette méthode sert à gérer la montée de version
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS " + CONTENT_PROVIDER_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + CONTENT_PROVIDER_TABLE_BRIDGE);
+            db.execSQL("DROP TABLE IF EXISTS " + CONTENT_PROVIDER_TABLE_LIGHT);
             onCreate(db);
         }
 

@@ -3,11 +3,14 @@ package fr.free.couturier_remi_hd.huemyhouse.hueBridge;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import fr.free.couturier_remi_hd.huemyhouse.R;
+
+import static android.widget.Toast.makeText;
 
 
 public class HueBridgeAuthentification extends Activity {
@@ -19,6 +22,7 @@ public class HueBridgeAuthentification extends Activity {
     String        hueIp;
     String        hueUserName;
     HueBridge     hueBridge;
+    boolean       hueBrideLed = false;
 
     @Override
     public void onBackPressed() {
@@ -29,11 +33,10 @@ public class HueBridgeAuthentification extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        imageBridge = (ImageView) findViewById(R.id.imageBridge);
-
         Intent intent       = this.getIntent();
         onAuthentification  = intent.getExtras().getBoolean("onAuthentification");
         hueBridge           = new HueBridge("", intent.getExtras().getString("hueIp"), "", "", "");
+        imageBridge         = (ImageView) findViewById(R.id.imageBridge);
 
         if(onAuthentification == true) {
             setContentView(R.layout.hue_bridge_authentification);
@@ -54,7 +57,7 @@ public class HueBridgeAuthentification extends Activity {
             imageBridge.setImageResource(R.drawable.bridge_filled);
             String hueUserName    = intent.getExtras().getString("userName");
             HueManager hueManager = new HueManager(getApplicationContext());
-            hueBridge             = hueManager.getHueBridgeByNetwork(hueBridge);
+            hueBridge = hueManager.getHueBridgeByNetwork(hueBridge);
             // Mise à jour de l'identifiant retourné par le pont
             hueBridge.hueUserName = hueUserName;
             // Mise à jour de la bdd

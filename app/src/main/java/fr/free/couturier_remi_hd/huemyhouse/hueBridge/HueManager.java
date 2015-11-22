@@ -22,8 +22,9 @@ public class HueManager {
 
     Context hueContext;                   // Context
 
-    static String TAG = "[HueMyHouse][HueManager]";
-    static String nupnp = "https://www.meethue.com/api/nupnp";
+    static  String TAG = "[HueMyHouse][HueManager]";
+    static  String nupnp = "https://www.meethue.com/api/nupnp";
+    private Uri uriBridge;
 
     /**
      * Constructeur
@@ -32,6 +33,7 @@ public class HueManager {
      */
     public HueManager(Context context) {
         hueContext = context;
+        uriBridge = AndroidProvider.CONTENT_URI_BRIDGE;
     }
 
     /**
@@ -56,7 +58,7 @@ public class HueManager {
             newBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
             newBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
             newBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
-            hueContext.getContentResolver().insert(AndroidProvider.CONTENT_URI, newBridge);
+            hueContext.getContentResolver().insert(uriBridge, newBridge);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             return false;
@@ -82,8 +84,7 @@ public class HueManager {
                 SharedInformation.hueBridge.HUE_USERNAME,
                 SharedInformation.hueBridge.HUE_TOKEN};
 
-        Uri mBridges = AndroidProvider.CONTENT_URI;
-        Cursor cursor = hueContext.getContentResolver().query(mBridges, columns, null, null, null);
+        Cursor cursor = hueContext.getContentResolver().query(uriBridge, columns, null, null, null);
 
         try {
             if (cursor.moveToFirst()) {
@@ -123,7 +124,7 @@ public class HueManager {
             updateBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
             updateBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
             updateBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
-            hueContext.getContentResolver().update(AndroidProvider.CONTENT_URI, updateBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
+            hueContext.getContentResolver().update(uriBridge, updateBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             return false;
@@ -143,7 +144,7 @@ public class HueManager {
         try {
             ContentValues removeBridge = new ContentValues();
             removeBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
-            hueContext.getContentResolver().delete(AndroidProvider.CONTENT_URI, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
+            hueContext.getContentResolver().delete(uriBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             return false;
@@ -169,8 +170,7 @@ public class HueManager {
                 SharedInformation.hueBridge.HUE_USERNAME,
                 SharedInformation.hueBridge.HUE_TOKEN};
 
-        Uri mBridges = AndroidProvider.CONTENT_URI;
-        Cursor cursor = hueContext.getContentResolver().query(mBridges, columns, SharedInformation.hueBridge.HUE_IP + "=\"" + hueBridge.hueIp + "\"", null, null);
+        Cursor cursor = hueContext.getContentResolver().query(uriBridge, columns, SharedInformation.hueBridge.HUE_IP + "=\"" + hueBridge.hueIp + "\"", null, null);
 
         if (cursor.moveToFirst()) {
             do {

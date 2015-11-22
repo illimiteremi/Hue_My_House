@@ -20,6 +20,18 @@ public class SharedInformation {
         private hueBridge() {}
     }
 
+    public static final class hueLight implements BaseColumns {
+
+        public static final String LIGHT_ID         = "ID";
+        public static final String HUD_ID           = "HUE_ID";
+        public static final String HUE_LIGHT_ID     = "LIGHT_ID";
+        public static final String LIGHT_MODEL      = "MODEL";
+        public static final String LIGHT_TYPE       = "TYPE";
+        public static final String LIGHT_NAME       = "NAME";
+
+        private hueLight() {}
+    }
+
 
 
 }
