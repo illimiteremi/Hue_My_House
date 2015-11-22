@@ -20,9 +20,8 @@ public class AndroidProvider extends ContentProvider {
 
     // URI du content provider
     public static final String AUTHORITY = "fr.free.couturier_remi_hd.huemyhouse.provider";
-    public static final Uri    CONTENT_URI = Uri.parse("content://" + AUTHORITY);
-    public static final Uri    CONTENT_URI_BRIDGE            = Uri.parse("content://fr.free.couturier_remi_hd.huemyhouse.provider/bridge");
-    public static final Uri    CONTENT_URI_LIGHT             = Uri.parse("content://fr.free.couturier_remi_hd.huemyhouse.provider/light");
+    public static final Uri    CONTENT_URI_BRIDGE            = Uri.parse("content://" + AUTHORITY + "/bridge");
+    public static final Uri    CONTENT_URI_LIGHT             = Uri.parse("content://" + AUTHORITY + "/light");
 
     public static final String CONTENT_PROVIDER_DB_NAME      = "HueMyHouse.db";                // Nom de la base de données
     public static final int    CONTENT_PROVIDER_DB_VERSION   = 1;                              // Version de la base de données
@@ -60,7 +59,6 @@ public class AndroidProvider extends ContentProvider {
                 cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
         }
-        db.close();
         return cursor;
     }
 
@@ -121,7 +119,6 @@ public class AndroidProvider extends ContentProvider {
                 count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
                 break;
         }
-        db.close();
         return count;
     }
 
@@ -137,7 +134,6 @@ public class AndroidProvider extends ContentProvider {
                 count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
                 break;
         }
-        db.close();
         return count;
     }
 

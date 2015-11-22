@@ -1,6 +1,7 @@
 package fr.free.couturier_remi_hd.huemyhouse;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -88,9 +89,8 @@ public class MainActivity extends ActionBarActivity {
                 String token      = "";
                 // Enregistrement d'un pont hue
                 HueBridge hueBridge = new HueBridge(id, ip, userName, macAddress, token);
-                myManager.addHueBridge(hueBridge);
+                long idBdd = myManager.addHueBridge(hueBridge);
                 Log.d(TAG, "Pont Hue trouvé => " + id + " / " + ip);
-                connexionHueBridge();
             }
         }
 
@@ -152,27 +152,25 @@ public class MainActivity extends ActionBarActivity {
     public void connexionHueBridge() {
         // Connection au pont
         HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
-        try {
-            ArrayList<HueBridge> allBridge = hueBridgeManager.getAllHueBridge();
-            if (allBridge.size() == 0) {
-                recherchePontHue();
-            } else {
-                for (HueBridge listHueBridge: allBridge) {
-                    // Connnection au premier pont hue
-                    // TO DO => check de l'adresse ip qui repond
-                    HueBridge hueBridge = hueBridgeManager.getHueBridgeByNetwork(listHueBridge);
-                    PHAccessPoint lastAccessPoint  = new PHAccessPoint();
-                    lastAccessPoint.setIpAddress(hueBridge.hueIp);
-                    if (!hueBridge.hueUserName.isEmpty()) {
-                        lastAccessPoint.setUsername(hueBridge.hueUserName);
-                    }
-                    phHueSDK.connect(lastAccessPoint);
-                    break;
-                }
-            }
-        } catch (Exception e) {
+
+        ArrayList<HueBridge> allBridge = hueBridgeManager.getAllHueBridge();
+        if (allBridge.size() == 0) {
             recherchePontHue();
+        } else {
+            for (HueBridge listHueBridge: allBridge) {
+                // Connnection au premier pont hue
+                // TO DO => check de l'adresse ip qui repond
+                HueBridge hueBridge = hueBridgeManager.getHueBridgeByNetwork(listHueBridge);
+                PHAccessPoint lastAccessPoint  = new PHAccessPoint();
+                lastAccessPoint.setIpAddress(hueBridge.hueIp);
+                if (!hueBridge.hueUserName.isEmpty()) {
+                    lastAccessPoint.setUsername(hueBridge.hueUserName);
+                }
+                phHueSDK.connect(lastAccessPoint);
+                break;
+            }
         }
+
     }
 
     /**

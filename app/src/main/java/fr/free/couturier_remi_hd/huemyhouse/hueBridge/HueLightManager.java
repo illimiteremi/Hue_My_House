@@ -59,24 +59,33 @@ public class HueLightManager {
      * @param hueLight
      * @return Boolean
      */
-    public boolean addHueLight(HueLight hueLight) {
+    public long addHueLight(HueLight hueLight) {
+
+        long idBdd = -1;                                                 // Init valeur de retour
         // Verification de la présence des données
-        if (hueLight.hueId.isEmpty()) return false;                   // Valeur obligatoire
+        if (hueLight.hueId.isEmpty()) return -1;                   // Valeur obligatoire
 
-        try {
-            ContentValues newLight = new ContentValues();
-            newLight.put(SharedInformation.hueLight.LIGHT_ID, 0);
-            newLight.put(SharedInformation.hueLight.HUE_ID, hueLight.lightId);
-            newLight.put(SharedInformation.hueLight.HUE_LIGHT_ID, hueLight.hueLightId);
-            newLight.put(SharedInformation.hueLight.LIGHT_MODEL, hueLight.lightModel);
-            newLight.put(SharedInformation.hueLight.LIGHT_TYPE, hueLight.lightType);
-            newLight.put(SharedInformation.hueLight.LIGHT_NAME, hueLight.lightName);
-            lightContext.getContentResolver().insert(uriLight, newLight);
+        ContentValues newLight = new ContentValues();
+        newLight.put(SharedInformation.hueLight.LIGHT_ID, 0);
+        newLight.put(SharedInformation.hueLight.HUE_ID, hueLight.lightId);
+        newLight.put(SharedInformation.hueLight.HUE_LIGHT_ID, hueLight.hueLightId);
+        newLight.put(SharedInformation.hueLight.LIGHT_MODEL, hueLight.lightModel);
+        newLight.put(SharedInformation.hueLight.LIGHT_TYPE, hueLight.lightType);
+        newLight.put(SharedInformation.hueLight.LIGHT_NAME, hueLight.lightName);
+        Uri uri = lightContext.getContentResolver().insert(uriLight, newLight);
+        String lastPathSegment = uri.getLastPathSegment();
 
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-            return false;
+        if (lastPathSegment != null) {
+            try {
+                idBdd = Long.parseLong(lastPathSegment);
+                Log.d(TAG, "Identifiant BDD créé ID = " + idBdd);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Number Format Exception : " + e);
+                idBdd = -1;
+            }
         }
-        return true;
+        return idBdd;
+
+
     }
 }

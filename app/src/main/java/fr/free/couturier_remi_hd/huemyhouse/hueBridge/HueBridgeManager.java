@@ -40,30 +40,37 @@ public class HueBridgeManager {
      * Ajout d'un pont Hue dans la base de données
      *
      * @param hueBridge
-     * @return Boolean
+     * @return Identifiant bdd
      */
-    public boolean addHueBridge(HueBridge hueBridge) {
+    public long addHueBridge(HueBridge hueBridge) {
+
+        long idBdd = -1;                                                 // Init valeur de retour
 
         // Verification de la présence des données
-        if (hueBridge.hueId.isEmpty()) return false;                        // Valeur obligatoire
-        if (hueBridge.hueIp.isEmpty()) return false;                        // Valeur obligatoire
+        if (hueBridge.hueId.isEmpty()) return -1;                        // Valeur obligatoire
+        if (hueBridge.hueIp.isEmpty()) return -1;                        // Valeur obligatoire
 
-        try {
-            ContentValues newBridge = new ContentValues();
-            hueBridge.hueWifi = getWifiName();                              // Récuperation du SIDD du wifi
-            newBridge.put(SharedInformation.hueBridge.HUE_ID, 0);
-            newBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
-            newBridge.put(SharedInformation.hueBridge.HUE_IP, hueBridge.hueIp);
-            newBridge.put(SharedInformation.hueBridge.HUE_MAC_ADRESS, hueBridge.hueMacAdress);
-            newBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
-            newBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
-            newBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
-            hueContext.getContentResolver().insert(uriBridge, newBridge);
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-            return false;
+        ContentValues newBridge = new ContentValues();
+        hueBridge.hueWifi = getWifiName();                              // Récuperation du SIDD du wifi
+        newBridge.put(SharedInformation.hueBridge.HUE_ID, 0);
+        newBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
+        newBridge.put(SharedInformation.hueBridge.HUE_IP, hueBridge.hueIp);
+        newBridge.put(SharedInformation.hueBridge.HUE_MAC_ADRESS, hueBridge.hueMacAdress);
+        newBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
+        newBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
+        newBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
+        Uri uri = hueContext.getContentResolver().insert(uriBridge, newBridge);
+        String lastPathSegment = uri.getLastPathSegment();
+        if (lastPathSegment != null) {
+            try {
+                idBdd = Long.parseLong(lastPathSegment);
+                Log.d(TAG, "Identifiant BDD créé ID = " + idBdd);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Number Format Exception : " + e);
+                idBdd = -1;
+            }
         }
-        return true;
+        return idBdd;
     }
 
     /**
@@ -101,8 +108,8 @@ public class HueBridgeManager {
             }
         } catch (Exception e){
             Log.e(TAG, e.toString());
+            return null;
         }
-
         return allHueBridge;
     }
 
