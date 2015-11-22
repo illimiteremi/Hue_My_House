@@ -51,30 +51,30 @@ public class AndroidProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        long id = getId(uri);
         Cursor cursor = null;
         switch (uriMatcher.match(uri)){
             case URI_BRIDGE:
-                if (id < 0) {
-                    cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, selection, selectionArgs, null, null, sortOrder);
-                } else {
-                    cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, SharedInformation.hueBridge.HUE_ID + "=" + id, null, null, null, null);
-                }
+                cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
             case URI_LIGHT:
-                if (id < 0) {
-                    cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, selection, selectionArgs, null, null, sortOrder);
-                } else {
-                    cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, SharedInformation.hueLight.LIGHT_ID + "=" + id, null, null, null, null);
-                }
+                cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
         }
+        db.close();
         return cursor;
     }
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        switch (uriMatcher.match(uri)) {
+            case URI_BRIDGE:
+                return "bridge";
+            case URI_LIGHT:
+                return "light";
+             default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
+
     }
 
     @Override
@@ -111,52 +111,37 @@ public class AndroidProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        long id = getId(uri);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        try {
-            if (id < 0)
-                return db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
-            else
-                return db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, SharedInformation.hueBridge.HUE_ID + "=" + id, selectionArgs);
-        } finally {
-            db.close();
+        int count = 0;
+        switch (uriMatcher.match(uri)){
+            case URI_BRIDGE:
+                count = db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
+                break;
+            case URI_LIGHT:
+                count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
+                break;
         }
+        db.close();
+        return count;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        long id = getId(uri);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        try {
-            if (id < 0)
-                return db.update(CONTENT_PROVIDER_TABLE_BRIDGE,values, selection, selectionArgs);
-            else
-                return db.update(CONTENT_PROVIDER_TABLE_BRIDGE,
-                        values, SharedInformation.hueBridge.HUE_ID + "=" + id, null);
-        } finally {
-            db.close();
+        int count = 0;
+        switch (uriMatcher.match(uri)){
+            case URI_BRIDGE:
+                count = db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
+                break;
+            case URI_LIGHT:
+                count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
+                break;
         }
+        db.close();
+        return count;
     }
 
-    /**
-     * Récuperation de l'identifiant d'un pont Hue
-     * @param uri
-     * @return
-     */
-    private long getId(Uri uri) {
-        String lastPathSegment = uri.getLastPathSegment();
-        if (lastPathSegment != null) {
-            try {
-                return Long.parseLong(lastPathSegment);
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Number Format Exception : " + e);
-            }
-        }
-        return -1;
-    }
-
-    // DatabaseHelper
+     // DatabaseHelper
     private static class DatabaseHelper extends SQLiteOpenHelper {
 
         // Création de la base et du numéro de version
