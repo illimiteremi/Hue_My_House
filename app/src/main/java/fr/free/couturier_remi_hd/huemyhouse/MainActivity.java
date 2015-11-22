@@ -62,10 +62,6 @@ public class MainActivity extends ActionBarActivity {
             intent.putExtra("onAuthentification", false);
             intent.putExtra("userName", userName);
             startActivity(intent);
-
-            HueLightManager lightManager = new HueLightManager(getApplicationContext());
-            ArrayList<HueLight> allLight = lightManager.getAllInstanceLights();
-
         }
 
         @Override

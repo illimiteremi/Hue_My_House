@@ -61,8 +61,7 @@ public class HueLightManager {
      */
     public boolean addHueLight(HueLight hueLight) {
         // Verification de la présence des données
-        if (hueLight.hueId.isEmpty()) return false;                        // Valeur obligatoire
-        if (hueLight.hueLightId.isEmpty()) return false;                   // Valeur obligatoire
+        if (hueLight.hueId.isEmpty()) return false;                   // Valeur obligatoire
 
         try {
             ContentValues newLight = new ContentValues();

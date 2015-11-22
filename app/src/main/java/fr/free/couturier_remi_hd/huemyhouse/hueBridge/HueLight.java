@@ -27,8 +27,4 @@ public class HueLight {
     public String lightType;
     public String lightName;
 
-    public HueLight() {
-
-    }
-
 }
