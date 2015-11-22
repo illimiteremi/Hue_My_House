@@ -1,6 +1,5 @@
 package fr.free.couturier_remi_hd.huemyhouse;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -29,7 +28,9 @@ import com.philips.lighting.model.PHLightState;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridge;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridgeAuthentification;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueLight;
-import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueManager;
+import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridgeManager;
+import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueLightManager;
+import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -62,8 +63,8 @@ public class MainActivity extends ActionBarActivity {
             intent.putExtra("userName", userName);
             startActivity(intent);
 
-            HueLight hueLight = new HueLight(getApplicationContext());
-            List lights = hueLight.getAllLights();
+            HueLightManager lightManager = new HueLightManager(getApplicationContext());
+            ArrayList<HueLight> allLight = lightManager.getAllInstanceLights();
 
         }
 
@@ -82,7 +83,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onAccessPointsFound(List<PHAccessPoint> list) {
-            HueManager myManager = new HueManager(getApplicationContext());
+            HueBridgeManager myManager = new HueBridgeManager(getApplicationContext());
             for (PHAccessPoint myAccesPoint : list) {
                 String ip         = myAccesPoint.getIpAddress();
                 String id         = myAccesPoint.getBridgeId();
@@ -154,16 +155,16 @@ public class MainActivity extends ActionBarActivity {
      */
     public void connexionHueBridge() {
         // Connection au pont
-        HueManager hueManager = new HueManager(getApplicationContext());
+        HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
         try {
-            ArrayList<HueBridge> allBridge = hueManager.getAllHueBridge();
+            ArrayList<HueBridge> allBridge = hueBridgeManager.getAllHueBridge();
             if (allBridge.size() == 0) {
                 recherchePontHue();
             } else {
                 for (HueBridge listHueBridge: allBridge) {
                     // Connnection au premier pont hue
                     // TO DO => check de l'adresse ip qui repond
-                    HueBridge hueBridge = hueManager.getHueBridgeByNetwork(listHueBridge);
+                    HueBridge hueBridge = hueBridgeManager.getHueBridgeByNetwork(listHueBridge);
                     PHAccessPoint lastAccessPoint  = new PHAccessPoint();
                     lastAccessPoint.setIpAddress(hueBridge.hueIp);
                     if (!hueBridge.hueUserName.isEmpty()) {

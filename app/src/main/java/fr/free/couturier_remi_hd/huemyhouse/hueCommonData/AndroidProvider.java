@@ -178,12 +178,12 @@ public class AndroidProvider extends ContentProvider {
 
             db.execSQL("CREATE TABLE " + CONTENT_PROVIDER_TABLE_LIGHT + " ("
                     + SharedInformation.hueLight.LIGHT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + SharedInformation.hueLight.HUD_ID + " INTEGER,"
+                    + SharedInformation.hueLight.HUE_ID + " INTEGER,"
                     + SharedInformation.hueLight.HUE_LIGHT_ID + " VARCHAR(255) UNIQUE,"
                     + SharedInformation.hueLight.LIGHT_MODEL + " VARCHAR(255),"
                     + SharedInformation.hueLight.LIGHT_TYPE + " VARCHAR(255),"
                     + SharedInformation.hueLight.LIGHT_NAME + " VARCHAR(255),"
-                    + "FOREIGN KEY(" + SharedInformation.hueLight.HUD_ID  + ")REFERENCES " + CONTENT_PROVIDER_TABLE_BRIDGE + "(" + SharedInformation.hueBridge.HUE_ID + "));");
+                    + "FOREIGN KEY(" + SharedInformation.hueLight.HUE_ID  + ")REFERENCES " + CONTENT_PROVIDER_TABLE_BRIDGE + "(" + SharedInformation.hueBridge.HUE_ID + "));");
         }
 
         // Cette méthode sert à gérer la montée de version

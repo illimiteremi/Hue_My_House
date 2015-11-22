@@ -26,8 +26,8 @@ public class MeethueConnexion extends ActionBarActivity {
         hueExtras = getIntent().getExtras();
         hueBridge.hueIp = hueExtras.getString("hueIp");
 
-        final HueManager hueManager = new HueManager(getApplicationContext());
-        hueBridge                   = hueManager.getHueBridgeByNetwork(hueBridge);
+        final HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
+        hueBridge                   = hueBridgeManager.getHueBridgeByNetwork(hueBridge);
         hueWebWiew                  = (WebView) findViewById(R.id.meethueview);
 
         WebSettings webSettings = hueWebWiew.getSettings();
@@ -41,7 +41,7 @@ public class MeethueConnexion extends ActionBarActivity {
                    String hueToken = url.replace("phhueapp://sdk/login/","");
                     Log.d(TAG, "token = " +  hueToken);
                     hueBridge.meetHueToken = hueToken;
-                    Boolean addResult = hueManager.updateHueBridge(hueBridge);
+                    Boolean addResult = hueBridgeManager.updateHueBridge(hueBridge);
                     Log.d(TAG, "Mise à jour du pont hue = " + addResult);
                     finish();
                 }

@@ -3,10 +3,8 @@ package fr.free.couturier_remi_hd.huemyhouse.hueBridge;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import fr.free.couturier_remi_hd.huemyhouse.R;
 
@@ -56,12 +54,12 @@ public class HueBridgeAuthentification extends Activity {
         if(onAuthentification == false) {
             imageBridge.setImageResource(R.drawable.bridge_filled);
             String hueUserName    = intent.getExtras().getString("userName");
-            HueManager hueManager = new HueManager(getApplicationContext());
-            hueBridge = hueManager.getHueBridgeByNetwork(hueBridge);
+            HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
+            hueBridge = hueBridgeManager.getHueBridgeByNetwork(hueBridge);
             // Mise à jour de l'identifiant retourné par le pont
             hueBridge.hueUserName = hueUserName;
             // Mise à jour de la bdd
-            hueManager.updateHueBridge(hueBridge);
+            hueBridgeManager.updateHueBridge(hueBridge);
 
             Log.d(TAG, "UserName = " + hueBridge.hueUserName);
             Log.d(TAG, "Authentification sur le pont Hue (" + hueBridge.hueIp + ") effectuée.");

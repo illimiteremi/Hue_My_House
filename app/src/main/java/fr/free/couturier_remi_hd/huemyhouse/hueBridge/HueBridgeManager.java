@@ -18,7 +18,7 @@ import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
 /**
  * Created by rcouturi on 08/11/2015.
  */
-public class HueManager {
+public class HueBridgeManager {
 
     Context hueContext;                   // Context
 
@@ -31,13 +31,13 @@ public class HueManager {
      *
      * @param context
      */
-    public HueManager(Context context) {
+    public HueBridgeManager(Context context) {
         hueContext = context;
         uriBridge = AndroidProvider.CONTENT_URI_BRIDGE;
     }
 
     /**
-     * Ajout d'un pont Hue dans la base de donnée
+     * Ajout d'un pont Hue dans la base de données
      *
      * @param hueBridge
      * @return Boolean
@@ -73,7 +73,7 @@ public class HueManager {
      */
     public ArrayList<HueBridge> getAllHueBridge() {
 
-        ArrayList<HueBridge> allHueBridge = new ArrayList<HueBridge>();;
+        ArrayList<HueBridge> allHueBridge = new ArrayList<HueBridge>();
 
         String columns[] = new String[]{
                 SharedInformation.hueBridge.HUE_ID,
