@@ -4,5 +4,6 @@
 
     <string name="title_activity_meethue_connexion">Association à votre meethuee</string>
     <string name="title_activity_hue_bridge_authentification">Hue Bridge Authentification</string>
+    <string name="title_activity_start">StartActivity</string>
 
 </resources>

@@ -2,6 +2,7 @@ package fr.free.couturier_remi_hd.huemyhouse.hueBridge;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -34,7 +35,7 @@ public class HueLightManager {
     }
 
     /**
-     * Permet de récuperer toute les ampoules présente
+     * Permet de récuperer toute les ampoules présente sur l'instance
      * @return Liste d'objet HueLight
      */
     public ArrayList<HueLight> getAllInstanceLights() {
@@ -61,9 +62,9 @@ public class HueLightManager {
      */
     public long addHueLight(HueLight hueLight) {
 
-        long idBdd = -1;                                                 // Init valeur de retour
-        // Verification de la présence des données
-        if (hueLight.hueId.isEmpty()) return -1;                   // Valeur obligatoire
+        if (hueLight.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
 
         ContentValues newLight = new ContentValues();
         newLight.put(SharedInformation.hueLight.LIGHT_ID, 0);
@@ -72,20 +73,112 @@ public class HueLightManager {
         newLight.put(SharedInformation.hueLight.LIGHT_MODEL, hueLight.lightModel);
         newLight.put(SharedInformation.hueLight.LIGHT_TYPE, hueLight.lightType);
         newLight.put(SharedInformation.hueLight.LIGHT_NAME, hueLight.lightName);
-        Uri uri = lightContext.getContentResolver().insert(uriLight, newLight);
-        String lastPathSegment = uri.getLastPathSegment();
 
-        if (lastPathSegment != null) {
-            try {
-                idBdd = Long.parseLong(lastPathSegment);
+        try {
+            Uri uri = lightContext.getContentResolver().insert(uriLight, newLight);
+            String lastPathSegment = uri.getLastPathSegment();            // Récuperation de l'URI
+            if (lastPathSegment != null) {
+                long idBdd = Long.parseLong(lastPathSegment);
                 Log.d(TAG, "Identifiant BDD créé ID = " + idBdd);
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Number Format Exception : " + e);
-                idBdd = -1;
+                return idBdd;
             }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         }
-        return idBdd;
+        return -1;
+    }
 
+    /**
+     * Recherche les ampoules par rapport à l'id d'un pont
+     * @param hueBridge
+     * @return Liste d'objet HueLight
+     */
+    public ArrayList<HueLight> getHueLightByHue(HueBridge hueBridge) {
+        // Verification de la présence des données
+        if (hueBridge.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
 
+        ArrayList<HueLight> allHueLight = new ArrayList<HueLight>();
+        String columns[] = new String[]{
+                SharedInformation.hueLight.LIGHT_ID,
+                SharedInformation.hueLight.HUE_ID,
+                SharedInformation.hueLight.HUE_LIGHT_ID,
+                SharedInformation.hueLight.LIGHT_MODEL,
+                SharedInformation.hueLight.LIGHT_TYPE,
+                SharedInformation.hueLight.LIGHT_NAME};
+
+        Cursor cursor = lightContext.getContentResolver().query(uriLight, columns, SharedInformation.hueBridge.HUE_ID + "=\"" + hueBridge.hueId + "\"", null, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    HueLight hueLight   = new HueLight();
+                    hueLight.lightId    = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.LIGHT_ID));
+                    hueLight.hueId      = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.HUE_ID));
+                    hueLight.hueLightId = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.HUE_LIGHT_ID));
+                    hueLight.lightModel = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.LIGHT_MODEL));
+                    hueLight.lightType  = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.LIGHT_TYPE));
+                    hueLight.lightName  = cursor.getString(cursor.getColumnIndex(SharedInformation.hueLight.LIGHT_NAME));
+                    allHueLight.add(hueLight);                                                                              // Ajout de l'ampoule à la liste
+                    Log.d(TAG, "Ampoule Hue " + hueLight.hueId + " (" + hueLight.lightType + ") sur le pont : " + hueBridge.hueId);
+                } while (cursor.moveToNext());
+                return allHueLight;
+            }
+        }  catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
+        return null;
+    }
+
+    /**
+     * Retire une ampoule de la BDD
+     * @param hueLight
+     * @return Boolean du resultat
+     */
+    public boolean removeHueLight(HueLight hueLight) {
+
+        // Verification de la présence des données
+        if (hueLight.lightId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant de l'ampoule Hue est manquant !");
+        }
+
+        try {
+            lightContext.getContentResolver().delete(uriLight, SharedInformation.hueLight.LIGHT_ID + "=\"" + hueLight.lightId + "\"", null);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Mise à jour d'une ampoule en BDD
+     * @param  hueLight
+     * @return Boolean du resultat
+     */
+    public Boolean updateHueLight(HueLight hueLight){
+        // Verification de la présence des données
+        if (hueLight.lightId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant de l'ampoule Hue est manquant !");
+        }
+        if (hueLight.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
+
+        try {
+            ContentValues updateLight = new ContentValues();
+            updateLight.put(SharedInformation.hueLight.LIGHT_ID, hueLight.lightId);
+            updateLight.put(SharedInformation.hueLight.HUE_ID, hueLight.hueId);
+            updateLight.put(SharedInformation.hueLight.HUE_LIGHT_ID, hueLight.hueLightId);
+            updateLight.put(SharedInformation.hueLight.LIGHT_MODEL, hueLight.lightModel);
+            updateLight.put(SharedInformation.hueLight.LIGHT_TYPE, hueLight.lightType);
+            updateLight.put(SharedInformation.hueLight.LIGHT_NAME, hueLight.lightName);
+            lightContext.getContentResolver().update(uriLight, updateLight, SharedInformation.hueLight.LIGHT_ID + "=\"" + hueLight.lightId + "\"", null);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+            return false;
+        }
+        return true;
     }
 }

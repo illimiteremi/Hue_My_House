@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -44,14 +45,16 @@ public class HueBridgeManager {
      */
     public long addHueBridge(HueBridge hueBridge) {
 
-        long idBdd = -1;                                                 // Init valeur de retour
-
         // Verification de la présence des données
-        if (hueBridge.hueId.isEmpty()) return -1;                        // Valeur obligatoire
-        if (hueBridge.hueIp.isEmpty()) return -1;                        // Valeur obligatoire
+        if (hueBridge.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
+        if (hueBridge.hueIp.isEmpty()) {
+            throw new IllegalArgumentException("Adresse IP du pont Hue est manquant !");
+        }
 
         ContentValues newBridge = new ContentValues();
-        hueBridge.hueWifi = getWifiName();                              // Récuperation du SIDD du wifi
+        hueBridge.hueWifi = getWifiName();                              // Récuperation du SIDD du WIFI
         newBridge.put(SharedInformation.hueBridge.HUE_ID, 0);
         newBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
         newBridge.put(SharedInformation.hueBridge.HUE_IP, hueBridge.hueIp);
@@ -59,18 +62,19 @@ public class HueBridgeManager {
         newBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
         newBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
         newBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
-        Uri uri = hueContext.getContentResolver().insert(uriBridge, newBridge);
-        String lastPathSegment = uri.getLastPathSegment();
-        if (lastPathSegment != null) {
-            try {
-                idBdd = Long.parseLong(lastPathSegment);
+
+        try {
+            Uri uri = hueContext.getContentResolver().insert(uriBridge, newBridge);
+            String lastPathSegment = uri.getLastPathSegment();            // Récuperation de l'URI
+            if (lastPathSegment != null) {
+                long idBdd = Long.parseLong(lastPathSegment);
                 Log.d(TAG, "Identifiant BDD créé ID = " + idBdd);
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Number Format Exception : " + e);
-                idBdd = -1;
+                return idBdd;
             }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         }
-        return idBdd;
+        return -1;
     }
 
     /**
@@ -120,8 +124,12 @@ public class HueBridgeManager {
      */
     public Boolean updateHueBridge(HueBridge hueBridge){
         // Verification de la présence des données
-        if (hueBridge.hueId.isEmpty()) return false;                        // Valeur obligatoire
-        if (hueBridge.hueIp.isEmpty()) return false;                        // Valeur obligatoire
+        if (hueBridge.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
+        if (hueBridge.hueIp.isEmpty()) {
+            throw new IllegalArgumentException("Adresse IP du pont Hue est manquant !");
+        }
 
         try {
             ContentValues updateBridge = new ContentValues();
@@ -131,7 +139,7 @@ public class HueBridgeManager {
             updateBridge.put(SharedInformation.hueBridge.HUE_WIFI_NAME, hueBridge.hueWifi);
             updateBridge.put(SharedInformation.hueBridge.HUE_USERNAME, hueBridge.hueUserName);
             updateBridge.put(SharedInformation.hueBridge.HUE_TOKEN, hueBridge.meetHueToken);
-            hueContext.getContentResolver().update(uriBridge, updateBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
+            int tt = hueContext.getContentResolver().update(uriBridge, updateBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             return false;
@@ -142,15 +150,15 @@ public class HueBridgeManager {
     /**
      * Suppression d'un pont Hue
      * @param hueBridge
-     * @return
+     * @return Boolean du resultat
      */
     public Boolean removeHueBridge(HueBridge hueBridge){
         // Verification de la présence des données
-        if (hueBridge.hueId.isEmpty()) return false;                        // Valeur obligatoire
+        if (hueBridge.hueId.isEmpty()) {
+            throw new IllegalArgumentException("Identifiant du pont Hue est manquant !");
+        }
 
         try {
-            ContentValues removeBridge = new ContentValues();
-            removeBridge.put(SharedInformation.hueBridge.HUE_BRIDGE_ID, hueBridge.hueId);
             hueContext.getContentResolver().delete(uriBridge, SharedInformation.hueBridge.HUE_BRIDGE_ID + "=\"" + hueBridge.hueId + "\"", null);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
@@ -166,7 +174,9 @@ public class HueBridgeManager {
      */
     public HueBridge getHueBridgeByNetwork(HueBridge hueBridge) {
         // Verification de la présence des données
-        if (hueBridge.hueIp.isEmpty()) return null;                        // Valeur obligatoire
+        if (hueBridge.hueIp.isEmpty()) {
+            throw new IllegalArgumentException("Adresse IP du pont Hue est manquant !");
+        }
 
         String columns[] = new String[]{
                 SharedInformation.hueBridge.HUE_ID,

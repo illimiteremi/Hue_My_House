@@ -11,27 +11,31 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
+
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:name=".HueActivity.StartActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".HueActivity.TestActivity"
+            android:label="@string/app_name">
+        </activity>
+
         <activity
             android:name=".hueBridge.MeethueConnexion"
             android:label="@string/title_activity_meethue_connexion" >
         </activity>
-        <activity
-            android:name=".hueBridge.HueBridgeAuthentification"
-            android:label="@string/title_activity_hue_bridge_authentification"
-            android:launchMode="singleTop">
-        </activity>
 
-        <provider android:name="fr.free.couturier_remi_hd.huemyhouse.hueCommonData.AndroidProvider"
-            android:authorities="fr.free.couturier_remi_hd.huemyhouse.provider"/>
-
+        <provider
+            android:name=".hueCommonData.AndroidProvider"
+            android:authorities="fr.free.couturier_remi_hd.huemyhouse.provider" />
     </application>
 
 </manifest>

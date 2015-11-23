@@ -10,7 +10,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 /**
@@ -28,17 +27,21 @@ public class AndroidProvider extends ContentProvider {
     public static final String CONTENT_PROVIDER_TABLE_BRIDGE = "hueBridge";                    // Nom de la table des ponts philips
     public static final String CONTENT_PROVIDER_TABLE_LIGHT  = "hueLight";                     // Nom de la table des ampoules
 
-    public static final int    URI_BRIDGE                    = 1;
-    public static final int    URI_LIGHT                     = 2;
+    public static final int    BRIDGE_LIST                   = 1;                              // For UriMatcher
+    public static final int    BRIDGE_ID                     = 2;
+    public static final int    LIGHT_LIST                    = 3;
+    public static final int    LIGHT_ID                      = 4;
 
-    public static final String      TAG                         = "[HueMyHouse][Provider]";
+    public static final String      TAG                      = "[HueMyHouse][Provider]";
     private DatabaseHelper          dbHelper;
     private static final UriMatcher uriMatcher;
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(AUTHORITY, "bridge", 1);
-        uriMatcher.addURI(AUTHORITY, "light",  2);
+        uriMatcher.addURI(AUTHORITY, "bridge",   BRIDGE_LIST);
+        uriMatcher.addURI(AUTHORITY, "bridge/#", BRIDGE_ID);
+        uriMatcher.addURI(AUTHORITY, "light",    LIGHT_LIST);
+        uriMatcher.addURI(AUTHORITY, "light/#",  LIGHT_ID);
     }
 
     @Override
@@ -52,10 +55,10 @@ public class AndroidProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = null;
         switch (uriMatcher.match(uri)){
-            case URI_BRIDGE:
+            case BRIDGE_LIST:
                 cursor = db.query(CONTENT_PROVIDER_TABLE_BRIDGE, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
-            case URI_LIGHT:
+            case LIGHT_LIST:
                 cursor = db.query(CONTENT_PROVIDER_TABLE_LIGHT, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
         }
@@ -65,14 +68,17 @@ public class AndroidProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
-            case URI_BRIDGE:
-                return "bridge";
-            case URI_LIGHT:
-                return "light";
+            case BRIDGE_LIST:
+                return String.valueOf(CONTENT_URI_BRIDGE);
+            case BRIDGE_ID:
+                return String.valueOf(CONTENT_URI_BRIDGE);
+            case LIGHT_LIST:
+                return String.valueOf(CONTENT_URI_LIGHT);
+            case LIGHT_ID:
+                return String.valueOf(CONTENT_URI_LIGHT);
              default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
-
     }
 
     @Override
@@ -80,11 +86,11 @@ public class AndroidProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         long id;
         switch (uriMatcher.match(uri)){
-            case URI_BRIDGE:
+            case BRIDGE_LIST:
                 id = db.insertOrThrow(CONTENT_PROVIDER_TABLE_BRIDGE, null, values);
                 Log.d(TAG, "Ajout d'un pont en base");
                 break;
-            case URI_LIGHT:
+            case LIGHT_LIST:
                 id = db.insertOrThrow(CONTENT_PROVIDER_TABLE_LIGHT, null, values);
                 Log.d(TAG, "Ajout d'une ampoule en base.");
                 break;
@@ -112,10 +118,10 @@ public class AndroidProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         int count = 0;
         switch (uriMatcher.match(uri)){
-            case URI_BRIDGE:
+            case BRIDGE_LIST:
                 count = db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
                 break;
-            case URI_LIGHT:
+            case LIGHT_LIST:
                 count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
                 break;
         }
@@ -127,11 +133,11 @@ public class AndroidProvider extends ContentProvider {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         int count = 0;
         switch (uriMatcher.match(uri)){
-            case URI_BRIDGE:
-                count = db.delete(CONTENT_PROVIDER_TABLE_BRIDGE, selection, selectionArgs);
+            case BRIDGE_LIST:
+                count = db.update(CONTENT_PROVIDER_TABLE_BRIDGE, values, selection, selectionArgs);
                 break;
-            case URI_LIGHT:
-                count = db.delete(CONTENT_PROVIDER_TABLE_LIGHT, selection, selectionArgs);
+            case LIGHT_LIST:
+                count = db.update(CONTENT_PROVIDER_TABLE_LIGHT, values, selection, selectionArgs);
                 break;
         }
         return count;
