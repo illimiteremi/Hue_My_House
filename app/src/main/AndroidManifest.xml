@@ -16,7 +16,8 @@
             android:name=".HueActivity.StartActivity"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

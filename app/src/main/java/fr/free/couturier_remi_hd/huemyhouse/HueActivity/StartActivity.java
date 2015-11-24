@@ -1,5 +1,6 @@
 package fr.free.couturier_remi_hd.huemyhouse.HueActivity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -7,6 +8,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
@@ -30,20 +36,15 @@ public class StartActivity extends ActionBarActivity {
     static  String       TAG                = "[HueMyHouse][StartActivity]";
     PHHueSDK             phHueSDK;
 
-    Boolean              onBridgeSearch     = false;
-    Boolean              onAuthentification = false;
+    Boolean              onBridgeSearch     = false;                // Etat de recherche
+    Boolean              onAuthentification = false;                // Etat d'authentification
+    int                  onErrorCode        = 0;                    // Code erreur du PHSDKListener
+
+    TextView             messageTextView;
+    ImageView            plugBridgeImageView;
+    Button               rechercherButton;
 
     private PHSDKListener listener = new PHSDKListener() {
-
-        /**
-         * Envoi un message au MainActivity
-         * @param listenerMessage
-         */
-        private void sendMessage(String listenerMessage) {
-            //Intent i = new Intent(MainActivity.this,MainActivity.class);
-            //i.putExtra("listenerMessage", listenerMessage);
-            //startActivity(i);
-        }
 
         @Override
         public void onCacheUpdated(List<Integer> list, PHBridge phBridge) {
@@ -78,8 +79,6 @@ public class StartActivity extends ActionBarActivity {
             Intent i = new Intent (getApplicationContext(), TestActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
-
-
         }
 
         @Override
@@ -108,13 +107,19 @@ public class StartActivity extends ActionBarActivity {
         }
 
         @Override
-        public void onError(int i, String s) {
-            Log.d(TAG, "On Error " + i + " = " + s);
-            switch (i){
+        public void onError(int errorCode, String errorMessage) {
+            Log.d(TAG, "On Error " + errorCode + " = " + errorMessage);
+            onErrorCode = errorCode;
+            switch (errorCode){
                 case 101:                                       // link button not pressed
                     break;
+                case 1157:                                      // No bridge found
+                    onBridgeSearch = false;
+                    break;
+                case 46:                                        // bridge not responding
+                    onAuthentification = false;
+                    break;
                 default:                                        // Autres codes
-                    sendMessage("On Error " + i + " = " + s);
             }
         }
 
@@ -133,116 +138,140 @@ public class StartActivity extends ActionBarActivity {
         }
     };
 
-    private class findHueBridge extends AsyncTask<Void, Integer, Void> {
-
-        private ProgressDialog                  progress;
-
-        @Override
-        protected void onPreExecute() {
-            onBridgeSearch = true;
-            progress = new ProgressDialog(StartActivity.this);
-            progress.setTitle("Recherche des ponts Hue");
-            progress.setMessage("Recheche en cours...");
-            progress.setCancelable(true);
-            progress.setIcon(R.drawable.hue_bridge);
-            progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progress.setButton(DialogInterface.BUTTON_POSITIVE, "Annuler", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    onBridgeSearch = false;
-                }
-            });
-            progress.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            // Vérification de la recherche
-            while (onBridgeSearch) {
-                try {
-                    Thread.sleep(1000);
-                    Log.d(TAG, "Recherche des ponts en cours...");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Log.d(TAG, "Recheche terminée");
-            progress.dismiss();
-            // Tentative de connexion
-            checkHueBridge(phHueSDK);
-        }
-    }
-
-    private class onAuthentication extends AsyncTask<Void, Integer, Void> {
-
-        private ProgressDialog                  progress;
-
-        @Override
-        protected void onPreExecute() {
-            onAuthentification = true;
-            progress = new ProgressDialog(StartActivity.this);
-            progress.setTitle("Demande d'authentification");
-            progress.setMessage("Authentification en cours...");
-            progress.setCancelable(true);
-            progress.setIcon(R.drawable.bridge_outline_push);
-            progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progress.setButton(DialogInterface.BUTTON_POSITIVE, "Annuler", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    onAuthentification = false;
-                }
-            });
-            progress.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            // Attente d'authenfication
-            while (onAuthentification) {
-                try {
-                    Thread.sleep(1000);
-                    Log.d(TAG, "Attente d'authenfication...");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Log.d(TAG,"Authenfication réalisée");
-            progress.dismiss();
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        // Initialisation de la TextView "Message"
+        messageTextView = (TextView) findViewById(R.id.messageTextView);
+        messageTextView.setText("1. Branchez le pont.\n" +
+                "2. Connectez-le à votre routeur Wi-Fi à l'aide du câble LAN prévu à cet effet\n" +
+                "3. Appuyez sur le bouton \"Rechercher\" ci-dessous");
+        messageTextView.setVisibility(View.INVISIBLE);
+
+        // Initialisation de l'imageView
+        plugBridgeImageView = (ImageView) findViewById(R.id.plugBridgeImageView);
+        plugBridgeImageView.setVisibility(View.INVISIBLE);
+
+        // Initialisation du Boutton "Rechercher"
+        rechercherButton = (Button) findViewById(R.id.rechercherButton);
+        rechercherButton.setVisibility(View.INVISIBLE);
+        rechercherButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onErrorCode == 46) {
+                    // Si On Error 46 = bridge not responding
+                    checkHueBridge();
+                } else {
+                    // Lancement nouvelle recherche de pont hue
+                    recherchePontHue();
+                }
+
+            }
+        });
 
         // Initialisation du PHSDKListener
         phHueSDK = PHHueSDK.create();
         phHueSDK.getNotificationManager().registerSDKListener(listener);
 
         // Verification si un pont Hue est déjà enregistré
-        if (!checkHueBridge(phHueSDK)) {
-            // Recherche d'un pont Hue
-            recherchePontHue(phHueSDK);
+        if (!checkHueBridge()) {
+            recherchePontHue();                 // Recherche d'un pont Hue
         }
     }
 
     /**
-     *
-     * @param phHueSDK
-     * @return
+     * Verification de la présence d'un pont Hue déjà enregistré
+     * @return Boolean de resultat
      */
-    private boolean checkHueBridge(PHHueSDK phHueSDK) {
+    private boolean checkHueBridge() {
+
+        class onAuthentication extends AsyncTask<Void, Integer, Void> {
+
+            private ProgressDialog                  progress;
+
+            @Override
+            protected void onPreExecute() {
+                onAuthentification = true;
+                progress = new ProgressDialog(StartActivity.this);
+                progress.setTitle("Demande d'authentification");
+                progress.setMessage("Veuillez appuyer sur le bouton central de votre pont Hue.");
+                progress.setCancelable(false);
+                progress.setIcon(R.drawable.ic_action_bridge_pressed);
+                progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress.setButton(DialogInterface.BUTTON_POSITIVE, "Annuler", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        onAuthentification = false;
+                    }
+                });
+                progress.show();
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                // Attente d'authenfication
+                while (onAuthentification) {
+                    try {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "Attente d'authenfication...");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                Log.d(TAG,"Authenfication réalisée");
+                progress.dismiss();
+            }
+        }
+
+        class waitHueConnection extends AsyncTask<Void, Integer, Void> {
+
+            private ProgressDialog                  progress;
+
+            @Override
+            protected void onPreExecute() {
+                onAuthentification = true;
+                progress = new ProgressDialog(StartActivity.this);
+                progress.setTitle("Connexion en cours");
+                progress.setMessage("Veuillez patientez...");
+                progress.setCancelable(false);
+                progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress.show();
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                // Attente d'authenfication
+                while (onAuthentification) {
+                    try {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "Attente d'authenfication...");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                progress.dismiss();
+                if (onErrorCode == 46) {
+                    Log.d(TAG,"Le pont ne répond pas");
+                    AlertDialog diaBox = noBridgeAskOption();
+                    diaBox.show();
+                } else {
+                    Log.d(TAG,"Authenfication réalisée");
+                }
+            }
+        }
+
         // Connection au pont
         HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
         ArrayList<HueBridge> allBridge = hueBridgeManager.getAllHueBridge();
@@ -256,6 +285,7 @@ public class StartActivity extends ActionBarActivity {
                 if (!hueBridge.hueUserName.isEmpty()) {
                     lastAccessPoint.setUsername(hueBridge.hueUserName);
                     phHueSDK.connect(lastAccessPoint);
+                    new waitHueConnection().execute();
                 } else {
                     phHueSDK.connect(lastAccessPoint);
                     new onAuthentication().execute();
@@ -265,18 +295,82 @@ public class StartActivity extends ActionBarActivity {
         } else {
             return false;
         }
-
     }
 
     /**
-     *
-     * @param phHueSDK
+     * Recherche de ponts Hue sur le reseau
      */
-    private void recherchePontHue(PHHueSDK phHueSDK) {
+    private void recherchePontHue() {
+
+        class findHueBridge extends AsyncTask<Void, Integer, Void> {
+
+            private ProgressDialog                  progress;
+
+            @Override
+            protected void onPreExecute() {
+                onBridgeSearch = true;
+                progress = new ProgressDialog(StartActivity.this);
+                progress.setTitle("Recherche de ponts Hue");
+                progress.setMessage("Recheche en cours...");
+                progress.setIcon(R.drawable.ic_hue_bridge);
+                progress.setCancelable(false);
+                progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress.show();
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                // Vérification de la recherche
+                while (onBridgeSearch) {
+                    try {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "Recherche des ponts en cours...");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                Log.d(TAG, "Recheche terminée");
+                progress.dismiss();
+                // Tentative de connexion si pont trouvé
+                if (onErrorCode == 1157) {
+                    AlertDialog diaBox = noBridgeAskOption();
+                    diaBox.show();
+                } else {
+                    checkHueBridge();
+                }
+
+            }
+        }
+
         // Start a bridge search
         PHBridgeSearchManager sm = (PHBridgeSearchManager) phHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
         sm.search(true, true);
         new findHueBridge().execute();
     }
 
+    /**
+     * Boite de dialogue "Pont non trouve"
+     * @return AlertDialog
+     */
+    private AlertDialog noBridgeAskOption() {
+                AlertDialog noBridgeDialogBox = new AlertDialog.Builder(this)
+                .setTitle("Aucun pont connu détecté")
+                .setMessage("Nous ne parvenons pas à trouver le dernier pont connu sur ce réseau Wifi.")
+                .setIcon(R.drawable.ic_action_warning)
+                .setPositiveButton("Continuer", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        messageTextView.setVisibility(View.VISIBLE);
+                        rechercherButton.setVisibility(View.VISIBLE);
+                        plugBridgeImageView.setVisibility(View.VISIBLE);
+                    }
+                })
+                .create();
+        return noBridgeDialogBox;
+    }
 }

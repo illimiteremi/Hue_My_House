@@ -13,6 +13,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+import fr.free.couturier_remi_hd.huemyhouse.HueActivity.TestActivity;
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.AndroidProvider;
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
 
