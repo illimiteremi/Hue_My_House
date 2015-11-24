@@ -122,7 +122,7 @@ public class MeethueConnexion extends ActionBarActivity {
                     // fermeture de l'activity
                     finish();
 
-                    // Nouvelle Activite
+                    // Ouverture de l'activitée de Test
                     Intent i = new Intent(getApplicationContext(), TestActivity.class);
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);

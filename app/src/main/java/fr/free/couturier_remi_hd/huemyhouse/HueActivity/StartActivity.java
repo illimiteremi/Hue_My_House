@@ -131,6 +131,9 @@ public class StartActivity extends ActionBarActivity {
         @Override
         public void onConnectionLost(PHAccessPoint phAccessPoint) {
             Log.d(TAG, "onConnectionLost");
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
         }
 
         @Override

@@ -110,6 +110,11 @@ public class TestActivity extends ActionBarActivity {
         @Override
         public void onConnectionLost(PHAccessPoint phAccessPoint) {
             Log.d(TAG, "onConnectionLost");
+            // Retour à la connection du pont
+            finish();
+            Intent i = new Intent(getApplicationContext(), StartActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
         }
 
         @Override
