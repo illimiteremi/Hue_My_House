@@ -26,60 +26,8 @@ import fr.free.couturier_remi_hd.huemyhouse.R;
 public class MeethueConnexion extends ActionBarActivity {
 
     WebView               hueWebWiew;
-    PHHueSDK              phHueSDK;
-    HueBridge             hueBridge;
-    HueBridgeManager      hueBridgeManager;
 
     static  String        TAG                  = "[HueMyHouse][MeetHue]";
-    static  String        hueBrideIP           = "";
-    boolean               isOnConnectionResume = false;
-
-    public PHSDKListener listener = new PHSDKListener() {
-
-        @Override
-        public void onCacheUpdated(List<Integer> list, PHBridge phBridge) {
-        }
-
-        @Override
-        public void onBridgeConnected(PHBridge phBridge, String userName) {
-            Log.d(TAG, "Le pont Hue est connecté");
-        }
-
-        @Override
-        public void onAuthenticationRequired(PHAccessPoint phAccessPoint) {
-        }
-
-        @Override
-        public void onAccessPointsFound(List<PHAccessPoint> list) {
-        }
-
-        @Override
-        public void onError(int i, String s) {
-            Log.d(TAG, "On Error " + i + " = " + s);
-        }
-
-        @Override
-        public void onConnectionResumed(PHBridge phBridge) {
-            Log.d(TAG, "onConnectionResumed");
-            // Recuperation de l'adresse IP du pont
-            PHBridgeResourcesCache cache = phBridge.getResourceCache();
-            PHBridgeConfiguration bridge = cache.getBridgeConfiguration();
-            hueBrideIP                   = bridge.getIpAddress();
-            hueBridgeManager             = new HueBridgeManager(getApplicationContext());
-            hueBridge                    = new HueBridge("", hueBrideIP, "", "", "");
-            hueBridge                    = hueBridgeManager.getHueBridgeByNetwork(hueBridge);
-            isOnConnectionResume         = true;
-        }
-
-        @Override
-        public void onConnectionLost(PHAccessPoint phAccessPoint) {
-            Log.d(TAG, "onConnectionLost");
-        }
-
-        @Override
-        public void onParsingErrors(List<PHHueParsingError> list) {
-        }
-    };
 
     @Override
     public void onBackPressed() {
@@ -91,14 +39,11 @@ public class MeethueConnexion extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.meethue_connexion);
 
-        phHueSDK = PHHueSDK.create();
-        phHueSDK.getNotificationManager().registerSDKListener(listener);
-
         // Récuperation de l'identifiant hue
-        hueWebWiew              = (WebView) findViewById(R.id.meethueview);
+        hueWebWiew = (WebView) findViewById(R.id.meethueview);
 
         // Attente de connexion au pont Hue
-        while (!isOnConnectionResume) {
+        while (!HuePHSDKListener.onConnectionResume) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
@@ -108,7 +53,7 @@ public class MeethueConnexion extends ActionBarActivity {
 
         WebSettings webSettings = hueWebWiew.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        hueWebWiew.loadUrl(hueBridge.getMeetHueToken());
+        hueWebWiew.loadUrl(HuePHSDKListener.hueBridge.getMeetHueToken());
 
         hueWebWiew.setWebViewClient(new WebViewClient() {
             @Override
@@ -116,16 +61,16 @@ public class MeethueConnexion extends ActionBarActivity {
                 if (url.contains("phhueapp://sdk/login/")) {
                     String hueToken = url.replace("phhueapp://sdk/login/", "");
                     Log.d(TAG, "token = " + hueToken);
-                    hueBridge.meetHueToken = hueToken;
-                    Boolean addResult = hueBridgeManager.updateHueBridge(hueBridge);
+                    HuePHSDKListener.hueBridge.meetHueToken = hueToken;
+                    Boolean addResult = HuePHSDKListener.hueBridgeManager.updateHueBridge(HuePHSDKListener.hueBridge);
                     Log.d(TAG, "Mise à jour du pont hue = " + addResult);
-                    // fermeture de l'activity
-                    finish();
 
                     // Ouverture de l'activitée de Test
+                    HuePHSDKListener.onMeethueMode = true;
                     Intent i = new Intent(getApplicationContext(), TestActivity.class);
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
+                    finish();
                 }
             }
         });

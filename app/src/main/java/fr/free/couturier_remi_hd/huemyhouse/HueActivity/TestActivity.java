@@ -46,81 +46,18 @@ import org.apache.http.message.BasicNameValuePair;
 import fr.free.couturier_remi_hd.huemyhouse.R;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridge;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridgeManager;
+import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HuePHSDKListener;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.MeethueConnexion;
 
 public class TestActivity extends ActionBarActivity {
 
     static  String        TAG                  = "[HueMyHouse][TestActivity]";
 
-    PHHueSDK              phHueSDK;
-    String                hueBrideIP           = "";
-    boolean               isOnConnectionResume = false;
 
     Button                buttonAlarmMode;
     Button                buttonEffectMode;
     Button                buttonMyhue;
     Button                MyHueTestButton;
-
-    HueBridge             hueBridge;
-
-    public PHSDKListener listener = new PHSDKListener() {
-
-        @Override
-        public void onCacheUpdated(List<Integer> list, PHBridge phBridge) {
-            if (list.contains(PHMessageType.LIGHTS_CACHE_UPDATED)) {
-                Log.d(TAG, "Lights Cache Updated");
-            }
-        }
-
-        @Override
-        public void onBridgeConnected(PHBridge phBridge, String userName) {
-            Log.d(TAG, "Le pont Hue est connecté");
-            phHueSDK.setSelectedBridge(phBridge);
-            phHueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
-        }
-
-        @Override
-        public void onAuthenticationRequired(PHAccessPoint phAccessPoint) {
-            Log.d(TAG, "onAuthenticationRequired");
-            phHueSDK.startPushlinkAuthentication(phAccessPoint);
-        }
-
-        @Override
-        public void onAccessPointsFound(List<PHAccessPoint> list) {
-        }
-
-        @Override
-        public void onError(int i, String s) {
-            Log.d(TAG, "On Error " + i + " = " + s);
-        }
-
-        @Override
-        public void onConnectionResumed(PHBridge phBridge) {
-            Log.d(TAG, "onConnectionResumed");
-            // Recuperation de l'adresse IP du pont
-            PHBridgeResourcesCache cache      = phBridge.getResourceCache();
-            PHBridgeConfiguration bridge      = cache.getBridgeConfiguration();
-            hueBrideIP                        = bridge.getIpAddress();
-            HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
-            hueBridge                         = new HueBridge("", hueBrideIP, "", "", "");
-            hueBridge                         = hueBridgeManager.getHueBridgeByNetwork(hueBridge);
-            isOnConnectionResume              = true;
-        }
-
-        @Override
-        public void onConnectionLost(PHAccessPoint phAccessPoint) {
-            Log.d(TAG, "onConnectionLost");
-            // Retour à la connection du pont
-            finish();
-            Intent i = new Intent(getApplicationContext(), StartActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(i);
-        }
-
-        @Override
-        public void onParsingErrors(List<PHHueParsingError> list) {
-        }
-    };
 
     @Override
     public void onBackPressed() {
@@ -136,9 +73,6 @@ public class TestActivity extends ActionBarActivity {
         buttonEffectMode = (Button) findViewById(R.id.buttonEffect);
         buttonMyhue      = (Button) findViewById(R.id.buttonMyHue);
         MyHueTestButton  = (Button) findViewById(R.id.MyHueTestButton);
-
-        phHueSDK = PHHueSDK.create();
-        phHueSDK.getNotificationManager().registerSDKListener(listener);
 
         buttonEffectMode.setOnClickListener(new View.OnClickListener() {
 
@@ -157,27 +91,11 @@ public class TestActivity extends ActionBarActivity {
         });
 
         buttonMyhue.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 // Vérification de la présence de l' adresse IP du pont
-                if (!hueBrideIP.isEmpty()) {
-                    HueBridgeManager hueBridgeManager = new HueBridgeManager(getApplicationContext());
-                    HueBridge hueBridge = new HueBridge("", hueBrideIP, "", "", "");
-                    hueBridge = hueBridgeManager.getHueBridgeByNetwork(hueBridge);
-                    hueBridgeManager.getMeetHueToken(getApplicationContext(), hueBridge);
-                } else {
-                    // Message box d'erreur
-                    AlertDialog noBridgeDialogBox = new AlertDialog.Builder(getApplicationContext())
-                            .setTitle("Problème de connexion à votre compte Hue")
-                            .setMessage("Nous ne parvenons pas à identifer votre pont hue")
-                            .setIcon(R.drawable.ic_action_warning)
-                            .setPositiveButton("Annuler", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            }).create();
-                    noBridgeDialogBox.show();
+                if (!HuePHSDKListener.onMeethueMode) {
+                    HuePHSDKListener.hueBridgeManager.getMeetHueToken(getApplicationContext(), HuePHSDKListener.hueBridge);
                 }
             }
         });
@@ -190,16 +108,27 @@ public class TestActivity extends ActionBarActivity {
         });
 
         // Attente de connexion au pont Hue
-        while (!isOnConnectionResume) {
+        while ((HuePHSDKListener.onConnectionResume == false)  &&  (HuePHSDKListener.onMeethueMode == false)) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
+        // Affichage suivant la connexion
+        if (!HuePHSDKListener.onBridgeConnected){
+            buttonAlarmMode.setVisibility(View.INVISIBLE);
+            buttonEffectMode.setVisibility(View.INVISIBLE);
+        }
+
         // Si token de connexion alors bouton Visible
-        if (!hueBridge.meetHueToken.isEmpty()) {
+        if (HuePHSDKListener.onMeethueMode) {
+            buttonMyhue.setVisibility(View.INVISIBLE);
             MyHueTestButton.setVisibility(View.VISIBLE);
+        } else {
+            buttonMyhue.setVisibility(View.VISIBLE);
+            MyHueTestButton.setVisibility(View.INVISIBLE);
         }
 
     }
@@ -212,7 +141,7 @@ public class TestActivity extends ActionBarActivity {
 
         new Thread() {
             public void run() {
-                PHBridge bridge = phHueSDK.getSelectedBridge();
+                PHBridge bridge = HuePHSDKListener.phHueSDK.getSelectedBridge();
                 PHLightState lightState = new PHLightState();
 
                 lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
@@ -245,7 +174,7 @@ public class TestActivity extends ActionBarActivity {
     public void effectMode() {
         new Thread() {
             public void run() {
-                PHBridge bridge = phHueSDK.getSelectedBridge();
+                PHBridge bridge = HuePHSDKListener.phHueSDK.getSelectedBridge();
                 PHLightState lightState = new PHLightState();
                 lightState.setOn(true);
                 // Start effect mode
@@ -258,10 +187,10 @@ public class TestActivity extends ActionBarActivity {
     public void meethueTest() {
 
         // String urlGet  = "https://www.meethue.com/api/getbridge?token=" + hueBridge.meetHueToken+"&bridgeid=" + hueBridge;
-        String urlPost = "https://www.meethue.com/api/sendmessage?token=" + hueBridge.meetHueToken;
+        String urlPost = "https://www.meethue.com/api/sendmessage?token=" + HuePHSDKListener.hueBridge.meetHueToken;
         Log.d(TAG, urlPost);
 
-        final String huecommand = "{ bridgeId: \"" + hueBridge.hueId +"\", clipCommand: { url: \"/api/" + hueBridge.hueUserName + "/groups/0/action\", method: \"PUT\", body: {\"alert\":\"select\"}}}";
+        final String huecommand = "{ bridgeId: \"" + HuePHSDKListener.hueBridge.hueId +"\", clipCommand: { url: \"/api/" + HuePHSDKListener.hueBridge.hueUserName + "/groups/0/action\", method: \"PUT\", body: {\"alert\":\"select\"}}}";
         Log.d(TAG, huecommand);
 
         final HttpPost httpPost = new HttpPost(urlPost);

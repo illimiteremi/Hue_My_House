@@ -45,4 +45,16 @@
         style="@style/btnStyleOrange"
         android:layout_alignParentEnd="true" />
 
+    <Button
+        style="@style/btnStyleOrange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Continuer avec meethue.com"
+        android:id="@+id/meethueButton"
+        android:visibility="visible"
+        android:layout_below="@+id/plugBridgeImageView"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="20dp" />
+
 </RelativeLayout>
