@@ -1,60 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:layout_height="match_parent"
+    android:background="@drawable/rainbow_colors_bg"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="fr.free.couturier_remi_hd.huemyhouse.HueActivity.StartActivity"
-    android:background="@drawable/rainbow_colors_bg">
+    tools:context="fr.free.couturier_remi_hd.huemyhouse.hueActivity.StartActivity">
 
     <TextView
+        android:id="@+id/messageTextView"
+        style="@style/btnStyleOrange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/messageTextView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
         android:gravity="center_vertical"
-        android:visibility="visible"
-        android:typeface="normal"
         android:text="Message "
-        style="@style/btnStyleOrange"
-        android:layout_marginTop="10dp" />
+        android:typeface="normal"
+        android:visibility="visible" />
 
     <Button
+        android:id="@+id/rechercherButton"
+        style="@style/btnStyleOrange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Recherche"
-        android:id="@+id/rechercherButton"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/messageTextView"
         android:layout_marginTop="20dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        style="@style/btnStyleOrange"
+        android:text="Recherche"
         android:visibility="visible" />
 
     <ImageView
+        android:id="@+id/plugBridgeImageView"
+        style="@style/btnStyleOrange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/plugBridgeImageView"
-        android:layout_below="@+id/rechercherButton"
-        android:src="@drawable/plug_bridge"
-        android:layout_marginTop="20dp"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
-        style="@style/btnStyleOrange"
-        android:layout_alignParentEnd="true" />
+        android:layout_below="@+id/rechercherButton"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/plug_bridge" />
 
     <Button
+        android:id="@+id/meethueButton"
         style="@style/btnStyleOrange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Continuer avec meethue.com"
-        android:id="@+id/meethueButton"
-        android:visibility="visible"
-        android:layout_below="@+id/plugBridgeImageView"
-        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="20dp" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/plugBridgeImageView"
+        android:layout_marginTop="20dp"
+        android:text="Continuer avec meethue.com"
+        android:visibility="visible" />
 
 </RelativeLayout>

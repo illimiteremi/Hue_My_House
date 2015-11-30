@@ -10,12 +10,19 @@ import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHLight;
 
-import java.lang.reflect.Field;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.AndroidProvider;
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
@@ -181,4 +188,55 @@ public class HueLightManager {
         }
         return true;
     }
+
+    public void meethueAction(String hueAction) {
+
+        String urlPost = "https://www.meethue.com/api/sendmessage?token=" + HuePHSDKListener.hueBridge.meetHueToken;
+
+        final String huecommand = "{ bridgeId: \"" + HuePHSDKListener.hueBridge.hueId + "\", clipCommand: { url: \"/api/" + HuePHSDKListener.hueBridge.hueUserName + "/groups/0/action\", method: \"PUT\", body: " + hueAction + "}}";
+        Log.d(TAG, huecommand);
+
+        final HttpPost httpPost = new HttpPost(urlPost);
+        try {
+            // REPONSE HTTP
+            final Thread thread = new Thread() {
+                public void run() {
+                    try {
+                        // AJOUT DU HEADER
+                        httpPost.addHeader("content-type", "application/x-www-form-urlencoded");
+
+                        // AJOUT DES DONNEES JSON
+                        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                        nameValuePairs.add(new BasicNameValuePair("clipmessage", huecommand));
+                        httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                        // INITIALISATION DU CLIENT HTTP + AJOUT DU COOKIE STCA
+                        DefaultHttpClient httpClient = new DefaultHttpClient();
+
+                        // EXECUTION DE LA REQUETE HTTP - POST
+                        HttpResponse response = httpClient.execute(httpPost);
+                        if (response != null) {
+                            HttpEntity ent = response.getEntity();
+                            InputStream inputStream = ent.getContent();
+                            if (inputStream != null) {
+                                // json is UTF-8 by default
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+                                String line = null;
+                                while ((line = reader.readLine()) != null) {
+                                    Log.d(TAG, line);
+                                }
+                                inputStream.close();
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                }
+            };
+            thread.start();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
 }

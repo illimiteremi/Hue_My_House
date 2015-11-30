@@ -16,9 +16,8 @@ import java.util.List;
 
 public class HuePHSDKListener {
 
-    Context                 context;
-    static String           TAG                      = "[HueMyHouse][PHSDKListener]";
-
+    public static final int BRIDGE_NOT_RESPONDING = 46;               // Code erreur - bridge not responding
+    public static final int BRIDGE_NOT_FOUND = 1157;             // Code erreur - No bridge found
     public static int              errorCode                = 0;               // Code erreur retourné par le pon
     public static PHHueSDK         phHueSDK;                                   // Instance du pont Hue
     public static PHBridge         phHueBridge;                                // Objet pont Hue connecté
@@ -30,11 +29,8 @@ public class HuePHSDKListener {
     public static boolean   onConnectionResume       = false;            // Reconnexion au pont
     public static boolean   onMeethueMode            = false;            // Etat de syncro avec meethue
     public static boolean   onBridgeConnected        = false;            // Etat de connection au pont Hue en wifi
-
-    public static final int BRIDGE_NOT_RESPONDING    = 46;               // Code erreur - bridge not responding
-    public static final int BRIDGE_NOT_FOUND         = 1157;             // Code erreur - No bridge found
-
-
+    static String TAG = "[HueMyHouse][PHSDKListener]";
+    Context context;
     private PHSDKListener  listener = new PHSDKListener() {
 
         @Override

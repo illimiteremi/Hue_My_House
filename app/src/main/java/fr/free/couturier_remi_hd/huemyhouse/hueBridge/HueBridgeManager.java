@@ -8,12 +8,10 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
 
-import fr.free.couturier_remi_hd.huemyhouse.HueActivity.TestActivity;
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.AndroidProvider;
 import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
 
@@ -22,10 +20,9 @@ import fr.free.couturier_remi_hd.huemyhouse.hueCommonData.SharedInformation;
  */
 public class HueBridgeManager {
 
-    Context hueContext;                   // Context
-
     static  String TAG = "[HueMyHouse][HueManager]";
     static  String nupnp = "https://www.meethue.com/api/nupnp";
+    Context hueContext;                   // Context
     private Uri uriBridge;
 
     /**
@@ -228,7 +225,7 @@ public class HueBridgeManager {
      * @return
      */
     private String getWifiName() {
-        WifiManager manager = (WifiManager) hueContext.getSystemService(hueContext.WIFI_SERVICE);
+        WifiManager manager = (WifiManager) hueContext.getSystemService(Context.WIFI_SERVICE);
         if (manager.isWifiEnabled()) {
             WifiInfo wifiInfo = manager.getConnectionInfo();
             if (wifiInfo != null) {
