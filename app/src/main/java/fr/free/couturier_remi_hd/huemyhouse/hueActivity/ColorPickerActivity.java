@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,6 +19,8 @@ import fr.free.couturier_remi_hd.huemyhouse.R;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HuePHSDKListener;
 
 public class ColorPickerActivity extends Activity {
+
+    static String TAG = "[HueMyHouse][ColorPicker]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +42,25 @@ public class ColorPickerActivity extends Activity {
             public boolean onTouch(View v, MotionEvent event) {
                 int x, y;
                 int pixel;
-                int redValue, blueValue, greenValue, color;
+                int redValue = 0;
+                int blueValue = 0;
+                int greenValue = 0;
+                int color;
 
-                x = (int) event.getX();
-                y = (int) event.getY();
-                pixel = bitmap.getPixel(x, y);
-                redValue = Color.red(pixel);
-                blueValue = Color.blue(pixel);
-                greenValue = Color.green(pixel);
-                color = Color.rgb(redValue, greenValue, blueValue);
-                imageView2.setBackgroundColor(color);
-                textView.setText("RGB = " + redValue + " - " + blueValue + " - " + greenValue);
+                try {
+                    x = (int) event.getX();
+                    y = (int) event.getY();
+                    pixel = bitmap.getPixel(x, y);
+                    redValue = Color.red(pixel);
+                    blueValue = Color.blue(pixel);
+                    greenValue = Color.green(pixel);
+                    color = Color.rgb(redValue, greenValue, blueValue);
+                    imageView2.setBackgroundColor(color);
+                    textView.setText("RGB = " + redValue + " - " + blueValue + " - " + greenValue);
+
+                } catch (Exception e) {
+                    Log.d(TAG, "Error = " + e.getMessage());
+                }
 
                 float xy[] = PHUtilities.calculateXYFromRGB(redValue, greenValue, blueValue, "");             // Set RGB
                 lightState.setX(xy[0]);
