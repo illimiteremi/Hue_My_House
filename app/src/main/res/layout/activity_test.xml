@@ -55,18 +55,6 @@
         android:text="Test du pont via my Hue"
         android:visibility="visible" />
 
-    <ToggleButton
-        android:id="@+id/toggleLightButton"
-        style="@style/btnStyleOrange"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/buttonMyHueTest"
-        android:layout_marginTop="20dp"
-        android:checked="false"
-        android:text="ToggleLightButton" />
-
     <Button
         android:id="@+id/buttonColorPicker"
         style="@style/btnStyleOrange"
@@ -74,7 +62,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/toggleLightButton"
+        android:layout_below="@+id/buttonMyHueTest"
         android:layout_marginTop="20dp"
         android:clickable="false"
         android:enabled="false"

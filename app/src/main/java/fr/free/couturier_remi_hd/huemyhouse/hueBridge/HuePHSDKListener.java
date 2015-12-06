@@ -29,6 +29,7 @@ public class HuePHSDKListener {
     public static boolean   onConnectionResume       = false;            // Reconnexion au pont
     public static boolean   onMeethueMode            = false;            // Etat de syncro avec meethue
     public static boolean   onBridgeConnected        = false;            // Etat de connection au pont Hue en wifi
+
     static String TAG = "[HueMyHouse][PHSDKListener]";
     Context context;
     private PHSDKListener  listener = new PHSDKListener() {

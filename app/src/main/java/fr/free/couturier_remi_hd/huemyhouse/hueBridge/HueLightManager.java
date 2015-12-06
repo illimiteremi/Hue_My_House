@@ -7,8 +7,11 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.philips.lighting.hue.sdk.PHHueSDK;
+import com.philips.lighting.hue.sdk.utilities.PHUtilities;
+import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHLight;
+import com.philips.lighting.model.PHLightState;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -34,11 +37,13 @@ public class HueLightManager {
     static  String TAG = "[HueMyHouse][HueLightManager]";
 
     Context lightContext;
+    PHBridge bridge;
     private Uri uriLight;
 
     public HueLightManager(Context context) {
         lightContext = context;
         uriLight     = AndroidProvider.CONTENT_URI_LIGHT;
+        bridge = HuePHSDKListener.phHueSDK.getSelectedBridge();
     }
 
     /**
@@ -189,6 +194,11 @@ public class HueLightManager {
         return true;
     }
 
+    /**
+     * Action distante à réalisé par le pont
+     *
+     * @param hueAction
+     */
     public void meethueAction(String hueAction) {
 
         String urlPost = "https://www.meethue.com/api/sendmessage?token=" + HuePHSDKListener.hueBridge.meetHueToken;
@@ -239,4 +249,43 @@ public class HueLightManager {
         }
     }
 
+    /**
+     * Change la couleur de toutes les ampoules d'un pont Hue
+     *
+     * @param red
+     * @param green
+     * @param blue
+     * @return result
+     */
+    public boolean changeAllLightsColor(int red, int green, int blue) {
+        try {
+            PHLightState lightState = new PHLightState();
+            float xy[] = PHUtilities.calculateXYFromRGB(red, green, blue, null);             // RED / GREEN / BLUE
+            lightState.setX(xy[0]);
+            lightState.setY(xy[1]);
+            bridge.setLightStateForDefaultGroup(lightState);
+        } catch (Exception e) {
+            Log.e(TAG, "Error = " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Permet d'allumer / eteindre toute les lumieres
+     *
+     * @param state
+     * @return
+     */
+    public boolean setAllLightsOnOff(boolean state) {
+        try {
+            PHLightState lightState = new PHLightState();
+            lightState.setOn(state);
+            bridge.setLightStateForDefaultGroup(lightState);
+        } catch (Exception e) {
+            Log.e(TAG, "Error = " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
 }
