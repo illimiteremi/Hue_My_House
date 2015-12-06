@@ -1,4 +1,4 @@
-package fr.free.couturier_remi_hd.huemyhouse.HueActivity;
+package fr.free.couturier_remi_hd.huemyhouse.hueActivity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -21,8 +21,8 @@ import java.util.ArrayList;
 
 import fr.free.couturier_remi_hd.huemyhouse.R;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridge;
-import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueBridgeManager;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HuePHSDKListener;
+import fr.free.couturier_remi_hd.huemyhouse.hueGraph.ActionStyle;
 
 public class StartActivity extends ActionBarActivity {
 
@@ -43,16 +43,16 @@ public class StartActivity extends ActionBarActivity {
         messageTextView.setText("1. Branchez le pont.\n" +
                 "2. Connectez-le à votre routeur Wi-Fi à l'aide du câble LAN prévu à cet effet\n" +
                 "3. Appuyez sur le bouton \"Rechercher\" ci-dessous");
-        messageTextView.setVisibility(View.INVISIBLE);
+        ActionStyle.setViewEnable(messageTextView, false);
 
         // ImageView "Branchement du pont Hue"
         plugBridgeImageView = (ImageView) findViewById(R.id.plugBridgeImageView);
-        plugBridgeImageView.setVisibility(View.INVISIBLE);
+        ActionStyle.setImageViewEnable(plugBridgeImageView, false);
 
 
         // Button "meethueButton"
         meethueButton = (Button) findViewById(R.id.meethueButton);
-        meethueButton.setVisibility(View.INVISIBLE);
+        ActionStyle.setButtonEnable(meethueButton, false);
         meethueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,10 +63,8 @@ public class StartActivity extends ActionBarActivity {
             }
         });
 
-
         // Button "Rechercher"
         rechercherButton = (Button) findViewById(R.id.rechercherButton);
-        rechercherButton.setVisibility(View.INVISIBLE);
         rechercherButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -81,7 +79,7 @@ public class StartActivity extends ActionBarActivity {
         });
 
         // Initialisation du PHSDKListener
-        HuePHSDKListener huePHSDKListener = new HuePHSDKListener(getApplicationContext());
+        new HuePHSDKListener(getApplicationContext());
 
         // Verification si un pont Hue est déjà enregistré
         if (!checkHueBridge()) {
@@ -297,12 +295,12 @@ public class StartActivity extends ActionBarActivity {
                 .setPositiveButton("Continuer", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        messageTextView.setVisibility(View.VISIBLE);
-                        rechercherButton.setVisibility(View.VISIBLE);
-                        plugBridgeImageView.setVisibility(View.VISIBLE);
+                        ActionStyle.setViewEnable(messageTextView, true);
+                        ActionStyle.setButtonEnable(rechercherButton, true);
+                        ActionStyle.setImageViewEnable(plugBridgeImageView, true);
                         // Seulement si un token est enregistré
                         if (HuePHSDKListener.onMeethueMode) {
-                            meethueButton.setVisibility(View.VISIBLE);
+                            ActionStyle.setButtonEnable(meethueButton, true);
                         }
                     }
                 })
