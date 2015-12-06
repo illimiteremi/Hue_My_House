@@ -56,7 +56,6 @@ public class ColorPickerActivity extends Activity {
         imageView = (ImageView) findViewById(R.id.imageView);
         lightButton = (Button) findViewById(R.id.lightButton);
 
-
         lightButton.setOnClickListener(new View.OnClickListener() {
 
             Boolean setOn = false;
