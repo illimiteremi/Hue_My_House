@@ -288,4 +288,49 @@ public class HueLightManager {
         }
         return true;
     }
+
+    public void alertSelect(final int red, final int green, final int blue, final int alarmTime) {
+
+        new Thread() {
+            public void run() {
+
+                PHHueSDK phHueSDK = PHHueSDK.getInstance();
+                PHBridgeResourcesCache cache = phHueSDK.getSelectedBridge().getResourceCache();
+                List<PHLight> myLights = cache.getAllLights();
+                float oldX = 0;
+                float oldY = 0;
+                for (PHLight light : myLights) {
+                    PHLightState state = light.getLastKnownLightState();
+                    oldX = state.getX();
+                    oldY = state.getY();
+                }
+
+                PHBridge bridge = HuePHSDKListener.phHueSDK.getSelectedBridge();
+                PHLightState lightState = new PHLightState();
+
+                lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
+                bridge.setLightStateForDefaultGroup(lightState);
+
+                // Start blinking for up to xx seconds
+                float xy[] = PHUtilities.calculateXYFromRGB(red, green, blue, "");
+                lightState.setX(xy[0]);
+                lightState.setY(xy[1]);
+                lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_LSELECT);
+                bridge.setLightStateForDefaultGroup(lightState);
+
+                try {
+                    Thread.sleep(alarmTime);
+                } catch (InterruptedException e) {
+                }
+
+                // Stop blinking
+                lightState.setX(oldX);
+                lightState.setY(oldY);
+                lightState.setHue(12345);
+                lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_NONE);
+                bridge.setLightStateForDefaultGroup(lightState);
+            }
+        }.start();
+    }
+
 }
