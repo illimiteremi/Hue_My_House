@@ -7,6 +7,10 @@ import android.content.Intent;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.philips.lighting.model.PHBridge;
+import com.philips.lighting.model.PHLight;
+import com.philips.lighting.model.PHLightState;
+
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HueLightManager;
 import fr.free.couturier_remi_hd.huemyhouse.hueBridge.HuePHSDKListener;
 
@@ -15,7 +19,12 @@ public class NotificationReceiver extends BroadcastReceiver {
     HueLightManager hueLightManager;
     private String TAG = "[HueMyHouse][NotificationReceiver]";
 
+    private PHBridge bridge;
+    private PHLightState lightState;
+
     public NotificationReceiver() {
+        bridge = HuePHSDKListener.phHueSDK.getSelectedBridge();
+        lightState = new PHLightState();
     }
 
     @Override
@@ -31,18 +40,20 @@ public class NotificationReceiver extends BroadcastReceiver {
 
                 case TelephonyManager.CALL_STATE_RINGING:
                     Log.d(TAG, "CALL_STATE_RINGING");
-                    if (HuePHSDKListener.onBridgeConnected) {
-                        hueLightManager = new HueLightManager(context);
-                        hueLightManager.alertSelect(255, 255, 255, 5000);
-                    }
+                    lightState.setAlertMode(PHLight.PHLightAlertMode.ALERT_LSELECT);
+                    bridge.setLightStateForDefaultGroup(lightState);
                     break;
 
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                     Log.d(TAG, "CALL_STATE_OFFHOOK");
+                    lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
+                    bridge.setLightStateForDefaultGroup(lightState);
                     break;
 
                 case TelephonyManager.CALL_STATE_IDLE:
                     Log.d(TAG, "CALL_STATE_IDLE");
+                    lightState.setEffectMode(PHLight.PHLightEffectMode.EFFECT_NONE);
+                    bridge.setLightStateForDefaultGroup(lightState);
                     break;
             }
         }
