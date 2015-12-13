@@ -13,17 +13,12 @@ import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLightState;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,7 +133,7 @@ public class HueLightManager {
                 return allHueLight;
             }
         }  catch (Exception e) {
-            Log.e(TAG, e.toString());
+            Log.e(TAG, e.toString(), e);
         }
         return null;
     }
@@ -158,7 +153,7 @@ public class HueLightManager {
         try {
             lightContext.getContentResolver().delete(uriLight, SharedInformation.hueLight.LIGHT_ID + "=\"" + hueLight.lightId + "\"", null);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
             return false;
         }
         return true;
@@ -188,7 +183,7 @@ public class HueLightManager {
             updateLight.put(SharedInformation.hueLight.LIGHT_NAME, hueLight.lightName);
             lightContext.getContentResolver().update(uriLight, updateLight, SharedInformation.hueLight.LIGHT_ID + "=\"" + hueLight.lightId + "\"", null);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
             return false;
         }
         return true;
@@ -201,33 +196,38 @@ public class HueLightManager {
      */
     public void meethueAction(String hueAction) {
 
-        String urlPost = "https://www.meethue.com/api/sendmessage?token=" + HuePHSDKListener.hueBridge.meetHueToken;
-
+        final String urlPost = "https://www.meethue.com/api/sendmessage?token=" + HuePHSDKListener.hueBridge.meetHueToken;
         final String huecommand = "{ bridgeId: \"" + HuePHSDKListener.hueBridge.hueId + "\", clipCommand: { url: \"/api/" + HuePHSDKListener.hueBridge.hueUserName + "/groups/0/action\", method: \"PUT\", body: " + hueAction + "}}";
         Log.d(TAG, huecommand);
 
-        final HttpPost httpPost = new HttpPost(urlPost);
         try {
             // REPONSE HTTP
             final Thread thread = new Thread() {
                 public void run() {
                     try {
-                        // AJOUT DU HEADER
-                        httpPost.addHeader("content-type", "application/x-www-form-urlencoded");
 
-                        // AJOUT DES DONNEES JSON
-                        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                        nameValuePairs.add(new BasicNameValuePair("clipmessage", huecommand));
-                        httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                        final URL httpPost = new URL(urlPost);
+                        final HttpURLConnection conn = (HttpURLConnection) httpPost.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                        conn.setRequestProperty("Content-Length", "" +
+                                Integer.toString(huecommand.getBytes().length));
+                        conn.setRequestProperty("Content-Language", "en-US");
 
-                        // INITIALISATION DU CLIENT HTTP + AJOUT DU COOKIE STCA
-                        DefaultHttpClient httpClient = new DefaultHttpClient();
+                        conn.setUseCaches(false);
+                        conn.setDoInput(true);
+                        conn.setDoOutput(true);
+
+                        //Send request
+                        try (DataOutputStream writer = new DataOutputStream(conn.getOutputStream())) {
+                            writer.writeBytes(huecommand);
+                            writer.flush();
+                            writer.close();
+                        }
 
                         // EXECUTION DE LA REQUETE HTTP - POST
-                        HttpResponse response = httpClient.execute(httpPost);
-                        if (response != null) {
-                            HttpEntity ent = response.getEntity();
-                            InputStream inputStream = ent.getContent();
+                        Log.d(TAG, "response: " + conn.getResponseCode());
+                        try (InputStream inputStream = conn.getInputStream()) {
                             if (inputStream != null) {
                                 // json is UTF-8 by default
                                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
@@ -239,13 +239,13 @@ public class HueLightManager {
                             }
                         }
                     } catch (Exception e) {
-                        Log.e(TAG, e.getMessage());
+                        Log.e(TAG, e.getMessage(), e);
                     }
                 }
             };
             thread.start();
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -265,7 +265,7 @@ public class HueLightManager {
             lightState.setY(xy[1]);
             bridge.setLightStateForDefaultGroup(lightState);
         } catch (Exception e) {
-            Log.e(TAG, "Error = " + e.getMessage());
+            Log.e(TAG, "Error = " + e.getMessage(), e);
             return false;
         }
         return true;
@@ -283,7 +283,7 @@ public class HueLightManager {
             lightState.setOn(state);
             bridge.setLightStateForDefaultGroup(lightState);
         } catch (Exception e) {
-            Log.e(TAG, "Error = " + e.getMessage());
+            Log.e(TAG, "Error = " + e.getMessage(), e);
             return false;
         }
         return true;
